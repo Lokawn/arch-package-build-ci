@@ -1,0 +1,105 @@
+---
+name: Build Package
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches: ["main"]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+permissions:
+  contents: write
+
+jobs:
+  build_job:
+    runs-on: ubuntu-22.04
+    name: Build Packages from pkglist file.
+
+    steps:
+      - uses: actions/checkout@v3
+        name: Checkout Repository to Github workspace with single commit to copy pkglist and package sources.
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v3
+        name: Checkout build-action repository for scripts.
+        with:
+          repository: Lokawn/arch-package-build-action
+          path: action
+          persist-credentials: false
+      - name: Check all necessary files exist
+        shell: bash
+        run: |
+          echo -e 'check_exist() {\n\tlocal filename\n\tfor filename; do\n\t\ttest -f "$filename" && continue\n\t\techo -e "\e[1;31m\e[1m$(basename $filename) does not exist - aborting.\e[0m" >&2\n\t\treturn 1\n\tdone\n\treturn 0\n}\ncheck_exist $@' > \
+          "$GITHUB_WORKSPACE/action/bin/check_exist"
+          
+          chmod +x "$GITHUB_WORKSPACE/action/bin/check_exist"
+          PATH=$PATH:"$GITHUB_WORKSPACE"/action/bin/
+          
+          cd "$GITHUB_WORKSPACE"
+          check_exist action/entrypoint.sh action/bin/{copy_pkg.sh,generate-index.sh,set_attr.sh,set_color.sh,set_debug.sh,set_gnupg.sh,setup_pacman.sh,setup_pkgbuild.sh,setup_repo.sh,setup_user.sh,syncweb.sh} pkglist
+
+          chmod +x action/entrypoint.sh action/bin/{copy_pkg.sh,generate-index.sh,set_attr.sh,set_color.sh,set_debug.sh,set_gnupg.sh,setup_pacman.sh,setup_pkgbuild.sh,setup_repo.sh,setup_user.sh,syncweb.sh}
+          
+          cp -a "$GITHUB_WORKSPACE/action/entrypoint.sh" "$GITHUB_WORKSPACE/"
+      - name: Copy package files using rsync
+        shell: bash
+        env:
+          SSHKEY: ${{ secrets.SSHKEY }}
+          REMOTE: ${{ secrets.REMOTE }}
+          HOST: ${{ secrets.HOST }}
+          ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
+        run: |
+          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh
+          source "$GITHUB_WORKSPACE/action/bin/syncweb.sh"
+          rsyncfiles "$REMOTE" "$GITHUB_WORKSPACE/repo/"
+      - name: Preserve unmodified packages
+        shell: bash
+        env:
+          ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
+        run: |          
+          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh
+          source "$GITHUB_WORKSPACE/action/bin/copy_pkg.sh"
+
+          # copy_pkg.sh
+          copy_pkg_files
+          seg_pkg_files
+
+          echo "::group::PKGDIR contents."
+            ls -A "$GITHUB_WORKSPACE"/pkgdir/
+          echo "::endgroup::"
+
+          rm -vrf "$GITHUB_WORKSPACE"/repo/x86_64 &> $DEBUG_OFF
+          mkdir -vp "$GITHUB_WORKSPACE"/repo/x86_64 &> $DEBUG_OFF
+      - uses: Lokawn/arch-package-build-action@main
+        name: MAKEPKG
+        env:
+          ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+          KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+      - uses: actions/upload-artifact@v3
+        name: Upload SHA512SUMS
+        with:
+          name: Upload SHA512SUMS
+          path:
+            repo/x86_64/sha512sums*
+      - uses: actions/upload-artifact@v3
+        name: Upload Logs
+        if: success() || failure()
+        with:
+          name: Upload Logs
+          path:
+            logdir/*.log
+      - name: Copy package files to web using rsync
+        shell: bash
+        env:
+          SSHKEY: ${{ secrets.SSHKEY }}
+          REMOTE: ${{ secrets.REMOTE }}
+          HOST: ${{ secrets.HOST }}
+          ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
+        run: |
+          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh
+          source "$GITHUB_WORKSPACE"/action/bin/syncweb.sh
+          rsyncfiles "$GITHUB_WORKSPACE/repo/" "$REMOTE"
