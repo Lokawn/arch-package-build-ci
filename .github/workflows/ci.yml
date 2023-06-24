@@ -50,7 +50,7 @@ jobs:
           HOST: ${{ secrets.HOST }}
           ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
         run: |
-          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh
+          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh"
           source "$GITHUB_WORKSPACE/action/bin/syncweb.sh"
           rsyncfiles "$REMOTE" "$GITHUB_WORKSPACE/repo/"
       - name: Preserve unmodified packages
@@ -58,7 +58,7 @@ jobs:
         env:
           ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
         run: |          
-          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh
+          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh"
           source "$GITHUB_WORKSPACE/action/bin/copy_pkg.sh"
 
           # copy_pkg.sh
@@ -100,6 +100,6 @@ jobs:
           HOST: ${{ secrets.HOST }}
           ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
         run: |
-          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh
-          source "$GITHUB_WORKSPACE"/action/bin/syncweb.sh
+          source "$GITHUB_WORKSPACE/action/bin/set_debug.sh"
+          source "$GITHUB_WORKSPACE/action/bin/syncweb.sh"
           rsyncfiles "$GITHUB_WORKSPACE/repo/" "$REMOTE"
