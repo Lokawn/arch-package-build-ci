@@ -65,9 +65,12 @@ jobs:
           copy_pkg_files
           seg_pkg_files
 
-          echo "::group::PKGDIR contents."
-            ls -A "$GITHUB_WORKSPACE"/pkgdir/
-          echo "::endgroup::"
+          if [[ $(ls "$GITHUB_WORKSPACE"/pkgdir/ | grep -q zst; echo $?) ]]
+          then
+            echo "::group::PKGDIR contents."
+                ls -A "$GITHUB_WORKSPACE"/pkgdir/
+            echo "::endgroup::"
+          fi
 
           rm -vrf "$GITHUB_WORKSPACE"/repo/x86_64 &> $DEBUG_OFF
           mkdir -vp "$GITHUB_WORKSPACE"/repo/x86_64 &> $DEBUG_OFF
