@@ -9,15 +9,15 @@ url="https://github.com/mer-hybris/libgbinder"
 license=('BSD')
 depends=('libglibutil' 'glib2')
 makedepends=('git')
-source=(${pkgname}.tar.gz::${url}/archive/refs/tags/${pkgver}.tar.gz)
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/${pkgver}.tar.gz")
 sha512sums=('a93e3d123b76dab2e9b4b7d53a844303687f058aa76bf5619945fce99f7df09404c13686b9134674daa79a5ae570e27ad156099985160322246dc73482454785')
 
 build() {
-  cd ${pkgname}
+  cd "${pkgname}-${pkgver}"
   make KEEP_SYMBOLS=1 release pkgconfig
 }
 
 package() {
-  cd ${pkgname}
+  cd "${pkgname}-${pkgver}"
   make install-dev DESTDIR="${pkgdir}"
 }
