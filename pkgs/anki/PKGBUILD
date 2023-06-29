@@ -66,7 +66,6 @@ optdepends=(
     'lame: record sound'
     'mpv: play sound. prefered over mplayer'
     'mplayer: play sound'
-    'texlive-most: render LaTex in cards'
 )
 changelog="$pkgname.changelog"
 source=("$pkgname-$pkgver.tar.gz::https://github.com/ankitects/anki/archive/refs/tags/${pkgver}.tar.gz"
