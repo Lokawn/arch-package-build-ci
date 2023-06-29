@@ -75,7 +75,7 @@ jobs:
           cd "$GITHUB_WORKSPACE/repo"
           mkdir -vp x86_64-old &> $DEBUG_OFF
           mv -v x86_64/* x86_64-old/ &> $DEBUG_OFF
-          rm -vf x86_64 &> $DEBUG_OFF
+          rm -vrf x86_64 &> $DEBUG_OFF
           mkdir -vp "$GITHUB_WORKSPACE"/repo/x86_64 &> $DEBUG_OFF
       - uses: Lokawn/arch-package-build-action@main
         name: MAKEPKG
