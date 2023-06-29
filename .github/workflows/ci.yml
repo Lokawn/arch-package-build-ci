@@ -72,7 +72,7 @@ jobs:
             echo "::endgroup::"
           fi
 
-          mv -vf "$GITHUB_WORKSPACE"/repo/x86_64" ""$GITHUB_WORKSPACE"/repo/x86_64-old &> $DEBUG_OFF
+          mv -vf "$GITHUB_WORKSPACE/repo/x86_64/" "$GITHUB_WORKSPACE/repo/x86_64-old/" &> $DEBUG_OFF
           mkdir -vp "$GITHUB_WORKSPACE"/repo/x86_64 &> $DEBUG_OFF
       - uses: Lokawn/arch-package-build-action@main
         name: MAKEPKG
