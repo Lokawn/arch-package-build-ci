@@ -65,7 +65,7 @@ jobs:
           copy_pkg_files
           seg_pkg_files
 
-          if ls "$GITHUB_WORKSPACE"/pkgdir/ | grep -q zst
+          if compgen -G "$GITHUB_WORKSPACE"/pkgdir/*.zst &> /dev/null
           then
             echo "::group::PKGDIR contents."
                 ls -A "$GITHUB_WORKSPACE"/pkgdir/
