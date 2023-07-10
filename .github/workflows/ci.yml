@@ -60,6 +60,9 @@ jobs:
         run: |          
           source "$GITHUB_WORKSPACE/action/bin/set_debug.sh"
           source "$GITHUB_WORKSPACE/action/bin/copy_pkg.sh"
+          
+          # Remove empty lines, trailing and leading spaces and tabs from pkglist, enable comments in pkglist
+          sed -e '/^[ \t]*$/d' -e 's/^[ \t]*//' -e 's/[ \t]*$//' -e '/^#/d' -i /github/workspace/pkglist
 
           # copy_pkg.sh
           copy_pkg_files
