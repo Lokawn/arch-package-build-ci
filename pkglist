@@ -1,8 +1,13 @@
 
-#archiso-git
-#firefox-nightly-bin
-#opentabletdriver-git
-#plymouth-git
-#sddm-git
-#xournalpp-git
-linux-amd-znver2
+archiso-git
+firefox-nightly-bin
+opentabletdriver-git
+plymouth-git
+sddm-git
+xournalpp-git
+anki
+libglibutil
+libgbinder
+python-gbinder
+python-pyclip
+waydroid

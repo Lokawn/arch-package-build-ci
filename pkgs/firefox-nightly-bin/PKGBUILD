@@ -1,5 +1,5 @@
 # Maintainer: VitalyR <vr@vitalyr.com>
-# Maintainer: George Rawlinson <george@rawlinson.net.nz>
+# Contributor: George Rawlinson <george@rawlinson.net.nz>
 # Contributor: Cyano Hao <c@cyano.cn>
 # Contributor: Bruno Pagani (a.k.a. ArchangeGabriel) <bruno.n.pagani@gmail.com>
 # Contributor: Cedric MATHIEU <me.xenom @ gmail.com>
@@ -9,6 +9,8 @@ _channel=nightly
 _lang=en-US
 _pkgname="${_name}-${_channel}"
 pkgname="${_pkgname}-bin"
+provides=('firefox-nightly')
+conflicts=('firefox-nightly')
 pkgdesc="Standalone Web Browser from Mozilla — Nightly build (${_lang})"
 url="https://www.mozilla.org/${_lang}/${_name}/${_channel}"
 
@@ -32,7 +34,6 @@ pkgver=${_version}.${_build_id[date]}.${_build_id[time]}
 pkgrel=1
 arch=('x86_64')
 license=('MPL' 'GPL' 'LGPL')
-provides=('firefox-nightly')
 conflicts=('firefox-nightly')
 depends=(
   'dbus-glib'
