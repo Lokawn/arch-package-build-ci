@@ -17,11 +17,11 @@ jobs:
     name: Build Packages from pkglist file.
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout Repository to Github workspace with single commit to copy pkglist and package sources.
         with:
           persist-credentials: false
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         name: Checkout build-action repository for scripts.
         with:
           repository: Lokawn/arch-package-build-action
