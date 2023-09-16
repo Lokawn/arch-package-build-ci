@@ -33,7 +33,7 @@ jobs:
         shell: bash
         run: |
           if \
-            echo -e 'check_exist() {\n\tlocal filename\n\tfor filename; do\n\t\ttest -f "$filename" && continue\n\t\techo -e "\e[1;31m\e[1m$(basename $filename) does not exist - aborting.\e[0m" >&2\n\t\treturn 1\n\tdone\n\treturn 0\n}\ncheck_exist $@' > \
+            echo -e 'check_exist() {\n\tlocal filename\n\tfor filename; do\n\t\ttest -s "$filename" && continue\n\t\techo -e "\e[1;31m\e[1m$(basename $filename) does not exist - aborting.\e[0m" >&2\n\t\treturn 1\n\tdone\n\treturn 0\n}\ncheck_exist $@' > \
             "$GITHUB_WORKSPACE/action/bin/check_exist"
           then
             if ! chmod +x "$GITHUB_WORKSPACE/action/bin/check_exist" &> /dev/null
