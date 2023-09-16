@@ -50,20 +50,21 @@ jobs:
           
           cd "$GITHUB_WORKSPACE"
           
-          if \
-            check_exist action/entrypoint.sh action/bin/{copy_pkg.sh,generate-index.sh,set_attr.sh,set_color.sh,set_debug.sh,set_gnupg.sh,setup_pacman.sh,setup_pkgbuild.sh,setup_repo.sh,setup_user.sh,syncweb.sh} pkglist
-          then
-            if ! chmod +x action/entrypoint.sh action/bin/{copy_pkg.sh,generate-index.sh,set_attr.sh,set_color.sh,set_debug.sh,set_gnupg.sh,setup_pacman.sh,setup_pkgbuild.sh,setup_repo.sh,setup_user.sh,syncweb.sh}
-            then
-                echo -e "\e[1;31m\e[1mFailed to mark binary files executable - aborting.\e[0m"
+          for file in action/entrypoint.sh action/bin/{copy_pkg.sh,generate-index.sh,set_attr.sh,set_color.sh,set_debug.sh,set_gnupg.sh,setup_pacman.sh,setup_pkgbuild.sh,setup_repo.sh,setup_user.sh,syncweb.sh} pkglist; do
+              if check_exist "$file"
+              then
+                if ! chmod +x "$file"
+                then
+                    echo -e "\e[1;31m\e[1mFailed to mark "$file" executable - aborting.\e[0m"
+                    exit 1
+                fi
+                echo -e "\e[0;34m\e[1m"$file" found - proceeding.\e[0m"
+              else
+                echo -e "\e[1;31m\e[1m"$file" missing - aborting.\e[0m"
                 exit 1
-            fi
-            echo -e "\e[0;34m\e[1mAll binary files found - proceeding.\e[0m"
-          else
-            echo -e "\e[1;31m\e[1mBinary files missing - aborting.\e[0m"
-            exit 1
-          fi
-          
+              fi
+          done
+                    
           if cp -a "$GITHUB_WORKSPACE/action/entrypoint.sh" "$GITHUB_WORKSPACE/"
           then echo -e "\e[0;34m\e[1mCopied 'entrypoint.sh' to '\$GITHUB_WORKSPACE' - proceeding.\e[0m"
           else
@@ -79,7 +80,7 @@ jobs:
           ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
         run: |
           source "$GITHUB_WORKSPACE/action/bin/set_debug.sh"
-          source "/github/workspace/action/bin/set_color.sh"
+          source "$GITHUB_WORKSPACE/action/bin/set_color.sh"
           source "$GITHUB_WORKSPACE/action/bin/syncweb.sh"
           rsyncfiles "$REMOTE" "$GITHUB_WORKSPACE/repo/"
       - name: Preserve unmodified packages
