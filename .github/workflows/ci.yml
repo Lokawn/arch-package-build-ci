@@ -21,12 +21,14 @@ jobs:
         name: Checkout Repository to Github workspace with single commit to copy pkglist and package sources.
         with:
           persist-credentials: false
+          show-progress: false
       - uses: actions/checkout@v4
         name: Checkout build-action repository for scripts.
         with:
           repository: Lokawn/arch-package-build-action
           path: action
           persist-credentials: false
+          show-progress: false
       - name: Check all necessary files exist
         shell: bash
         run: |
