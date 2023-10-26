@@ -8,6 +8,8 @@ env:
   VARIANT: ${{ vars.VARIANT_INFINITY }}
   REPO: 'Docile-Alligator/Infinity-For-Reddit'
   REDIRECT_URL: 'http://127.0.0.1'
+  ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN-INFINITY }}
+  USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
 
 permissions:
   contents: write
@@ -25,24 +27,32 @@ jobs:
           persist-credentials: false
           show-progress: false
           repository: ${{ env.REPO }}
-      - name: Fetch source files
+
+      - name: Fetch source archive.
         if: ${{ env.VARIANT != 'git' }}
         shell: bash
-        env:
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN-INFINITY }}
-          USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
         run: |
-          if [[ ${VARIANT} != "git" ]]; then
-            latest_tag=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" \
-              | grep "\"tag_name\":" | cut -d \" -f 4)
+          latest_tag=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" \
+            | grep "\"tag_name\":" | cut -d \" -f 4)
               
-            latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
+          latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
             
-            wget -O "${REPO#*/}.tar.gz" "${latest_url}" && \
-            tar xf  "${REPO#*/}.tar.gz" && \
-            mv "${REPO#*/}-${latest_tag#*v}" "${REPO#*/}" && \
-            rm -f "${REPO#*/}.tar.gz"
-            
-            ls -AR
-          fi
+          wget -O "${REPO#*/}.tar.gz" "${latest_url}" && \
+          tar xf  "${REPO#*/}.tar.gz" && \
+          mv "${REPO#*/}-${latest_tag#*v}" "${REPO#*/}" && \
+          rm -f "${REPO#*/}.tar.gz"
+          
+          echo $JAVA_HOME
+          echo $ANDROID_SDK_ROOT
+          echo $PATH
+
+#      - name: Build source.
+#        shell: bash
+#        run: |
+#          apt-get --quiet update
+#          apt-get --quiet upgrade
+          
+#          sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${api_token}\"#" \
+#              -e "s#\"infinity://localhost\"#\"${redirect_uri}\"#" \
+#              -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${user_agent}\";#" "${apiutils_file}"
             
