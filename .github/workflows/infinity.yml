@@ -1,0 +1,48 @@
+name: Build Infinity
+
+on:
+  workflow_dispatch:
+  
+env:
+  # Setting an environment variable with the value of a configuration variable
+  VARIANT: ${{ vars.VARIANT_INFINITY }}
+  REPO: 'Docile-Alligator/Infinity-For-Reddit'
+  REDIRECT_URL: 'http://127.0.0.1'
+
+permissions:
+  contents: write
+
+jobs:
+  build_job:
+    runs-on: ubuntu-22.04
+    name: Build Infinity for reddit.
+
+    steps:
+      - name: Checkout Infinity-For-Reddit repository.
+        if: ${{ env.VARIANT == 'git' }}
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          show-progress: false
+          repository: ${{ env.REPO }}
+      - name: Fetch source files
+        if: ${{ env.VARIANT != 'git' }}
+        shell: bash
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN-INFINITY }}
+          USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
+        run: |
+          if [[ ${VARIANT} != "git" ]]; then
+            latest_tag=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" \
+              | grep "\"tag_name\":" | cut -d \" -f 4)
+              
+            latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
+            
+            wget -O "${REPO#*/}.tar.gz" "${latest_url}" && \
+            tar xf  "${REPO#*/}.tar.gz" && \
+            mv "${REPO#*/}-${latest_tag#*v}" "${REPO#*/}" && \
+            rm -f "${REPO#*/}.tar.gz"
+            
+            ls -AR
+          fi
+            
