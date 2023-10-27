@@ -29,9 +29,9 @@ jobs:
           PATH="$PATH":"/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools"
 
           sudo apt-get --quiet update
-          # sudo apt-get --quiet upgrade
+          sudo apt-get --quiet upgrade
           
-          sdkmanager  --sdk_root=$ANDROID_SDK_ROOT "platforms;android-30" "build-tools;30.0.3
+          sdkmanager  --sdk_root=${ANDROID_SDK_ROOT} "platforms;android-30" "build-tools;30.0.3"
         
       - name: Checkout Infinity-For-Reddit repository.
         if: ${{ env.VARIANT == 'git' }}
