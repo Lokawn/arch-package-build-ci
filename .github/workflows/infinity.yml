@@ -22,19 +22,16 @@ jobs:
     name: Build Infinity for reddit.
 
     steps:
-      - name: Set-up PATH.
+      - name: Set-up PATH and update runner.
         shell: bash
         run: |
-          echo "CAT GITHUB_PATH" && cat $GITHUB_PATH
-          echo "ECHO GITHUB_PATH" && echo $GITHUB_PATH
-          echo "ECHO PATH" && echo $PATH
-
           echo "/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
-          cat $GITHUB_PATH
+          PATH="$PATH":"/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools"
 
-          echo "CAT GITHUB_PATH" && cat $GITHUB_PATH
-          echo "ECHO GITHUB_PATH" && echo $GITHUB_PATH
-          echo "ECHO PATH" && echo $PATH
+          sudo apt-get --quiet update
+          sudo apt-get --quiet upgrade
+          
+          sdkmanager  --sdk_root=$ANDROID_SDK_ROOT "platforms;android-30" "build-tools;30.0.3
         
       - name: Checkout Infinity-For-Reddit repository.
         if: ${{ env.VARIANT == 'git' }}
@@ -53,26 +50,15 @@ jobs:
               
           latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
             
-          wget -O "${REPO#*/}.tar.gz" "${latest_url}" && \
+          wget --quiet -O "${REPO#*/}.tar.gz" "${latest_url}" && \
           tar xf  "${REPO#*/}.tar.gz" && \
           mv "${REPO#*/}-${latest_tag#*v}" "${REPO#*/}" && \
           rm -f "${REPO#*/}.tar.gz"
 
-          echo "CAT GITHUB_PATH" && cat $GITHUB_PATH
-          echo "ECHO GITHUB_PATH" && echo $GITHUB_PATH
-          echo "ECHO PATH" && echo $PATH
-          
       - name: Build source.
         shell: bash
         run: |
-          echo "CAT GITHUB_PATH" && cat $GITHUB_PATH
-          echo "ECHO GITHUB_PATH" && echo $GITHUB_PATH
-          echo "ECHO PATH" && echo $PATH
-
-          apt-get --quiet update
-          apt-get --quiet upgrade
           
 #          sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${api_token}\"#" \
 #              -e "s#\"infinity://localhost\"#\"${redirect_uri}\"#" \
 #              -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${user_agent}\";#" "${apiutils_file}"
-            
