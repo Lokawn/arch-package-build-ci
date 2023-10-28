@@ -84,7 +84,22 @@ jobs:
             set +x
             ./gradlew assembledebug
             echo "APK_VARIANT_DEBUG=true" >> "$GITHUB_ENV"
+            mv "${REPO#*/}/app/build/outputs/apk/debug/app-debug.apk" "${REPO#*/}/app/build/outputs/apk/debug/infinity-debug.apk"
           fi
+
+      - uses: actions/upload-artifact@v3
+        name: Upload debug APK as artifact.
+        if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
+        with:
+          name: Upload debug APK.
+          path: ${REPO#*/}/app/build/outputs/apk/debug/infinity-debug.apk
+
+      - uses: actions/upload-artifact@v3
+        if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
+        with:
+          name: Upload debug APK.
+          path:
+            ${REPO#*/}/app/build/outputs/apk/debug/infinity-debug.apk
 
       - name: "Upload compressed APK."
         if: ${{ env.APK_VARIANT_DEBUG != 'true' }}
