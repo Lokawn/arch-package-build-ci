@@ -9,6 +9,7 @@ env:
   # Setting an environment variable with the value of a configuration variable
   VARIANT: ${{ vars.VARIANT_INFINITY }}
   REPO: 'Docile-Alligator/Infinity-For-Reddit'
+  DEBUG_OFF: '/dev/null'
   # setup colors
   RED_COLOR: '\e[1;31m'
   ORANGE_COLOR: '\e[1;33m'
@@ -28,11 +29,19 @@ jobs:
         shell: bash
 
     steps:
+      - name: "Setup for debugging workflow."
+        if: ${{ env.RUNNER_DEBUG == '1' }}
+        run: |
+          set -x
+          echo -e "set -x\nexport DEBUG_OFF='/dev/stdout'" > ${GITHUB_WORKSPACE}/debug.sh
+
       - name: "Set-up PATH and update build tools."
         run: |
+          [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+
           echo "/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
-          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" &> /dev/null
-          
+          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0"  &> $DEBUG_OFF
+
           echo "APP_NAME=${REPO#*/}" >> "$GITHUB_ENV"
 
       - name: "Checkout ${{ env.APP_NAME }} repository."
@@ -47,17 +56,19 @@ jobs:
       - name: "Fetch source archive."
         if: ${{ env.VARIANT != 'git' }}
         run: |
+          [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+
           printf "${ORANGE_COLOR}NOTE: Using git archive as source.${UNSET_COLOR}\n"
 
-          latest_tag=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" \
+          latest_tag=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/releases/latest" \
             | grep "\"tag_name\":" | cut -d \" -f 4)
 
           latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
 
-          wget --quiet -O "${APP_NAME}.tar.gz" "${latest_url}" && \
-          tar xf "${APP_NAME}.tar.gz" && \
-          mv "${APP_NAME}-${latest_tag#*v}" "${APP_NAME}" && \
-          rm -f "${APP_NAME}.tar.gz"
+          wget -O "${APP_NAME}.tar.gz" "${latest_url}" &> $DEBUG_OFF && \
+          tar xf "${APP_NAME}.tar.gz" &> $DEBUG_OFF && \
+          mv -vf "${APP_NAME}-${latest_tag#*v}" "${APP_NAME}" &> $DEBUG_OFF && \
+          rm -vf "${APP_NAME}.tar.gz" &> $DEBUG_OFF
 
       - name: "Build source and compress APKs."
         env:
@@ -65,20 +76,18 @@ jobs:
             API_TOKEN: ${{ secrets.API_TOKEN-INFINITY }}
             USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
         run: |
-          cd "${APP_NAME}"
-          pwd
-          cd ~/ 
-          pwd && exit 1
+          [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+
           if [[ -n "${API_TOKEN}" ]]; then
             sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${API_TOKEN}\"#" \
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
-                -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"
+                -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"  &> $DEBUG_OFF
           #TODO: Compress APKs.
           else
             printf "${ORANGE_COLOR}NOTE: API_TOKEN not provided, building debug apk.${UNSET_COLOR}\n\n"
-            ./gradlew assembleDebug
+            ./gradlew assembleDebug &> $DEBUG_OFF
             echo "APK_VARIANT_DEBUG=true" >> "$GITHUB_ENV"
-            mv "~/${APP_NAME}/app/build/outputs/apk/debug/app-debug.apk" "~/${APP_NAME}-debug.apk"
+            mv -vf "${GITHUB_WORKSPACE}/${APP_NAME}/app/build/outputs/apk/debug/app-debug.apk" "${GITHUB_WORKSPACE}/${APP_NAME}-debug.apk" &> $DEBUG_OFF
           fi
 
       - uses: actions/upload-artifact@v3
@@ -86,13 +95,13 @@ jobs:
         if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
         with:
           name: Upload debug APK.
-          path: /home/runner/work/arch-package-build-ci/arch-package-build-ci/${{ env.APP_NAME }}-debug.apk
+          path: ${{ env.GITHUB_WORKSPACE }}/${{ env.APP_NAME }}-debug.apk
 
       - uses: actions/upload-artifact@v3
         if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
         with:
           name: Upload debug APK.
-          path: /home/runner/work/arch-package-build-ci/arch-package-build-ci/${{ env.APP_NAME }}-debug.apk
+          path: ${{ env.GITHUB_WORKSPACE }}/${{ env.APP_NAME }}-debug.apk
 
       - name: "Upload compressed APK."
         if: ${{ env.APK_VARIANT_DEBUG != 'true' }}
@@ -100,34 +109,36 @@ jobs:
           SSHKEY: ${{ secrets.SSHKEY }}
           REMOTE: ${{ secrets.REMOTE_ANDROID }}
           HOST: ${{ secrets.HOST }}
-        run: |        
-          if ! grep -Fxq "$HOST" "/home/runner/.ssh/known_hosts" &> /dev/null; then
-            if ! echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> /dev/null; then
+        run: |
+          [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+
+          if ! grep -Fxq "$HOST" "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF; then
+            if ! echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF; then
               echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}"
               exit 1
             fi
             echo -e "${BLUE_COLOR}${BOLD_TEXT}REMOTE appended to '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}"
 
-            chmod -v 0600 "/home/runner/.ssh/known_hosts" &> /dev/null && \
+            chmod -v 0600 "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF && \
               echo -e "${BLUE_COLOR}${BOLD_TEXT}Corrected permissions of '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}" || \
                 (echo -e "${RED_COLOR}${BOLD_TEXT}Failed to set correct permissions of '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
                   && exit 1 )
           fi
 
           if [[ -f "/home/runner/.ssh/id_ed25519" ]]; then
-            echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519.bak" &> /dev/null
-            if ! diff "/home/runner/.ssh/id_ed25519" "/home/runner/.ssh/id_ed25519.bak" &> /dev/null; then
-              mv -v "/home/runner/.ssh/id_ed25519.bak" "/home/runner/.ssh/id_ed25519" &> /dev/null
+            echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519.bak" &> $DEBUG_OFF
+            if ! diff "/home/runner/.ssh/id_ed25519" "/home/runner/.ssh/id_ed25519.bak" &> $DEBUG_OFF; then
+              mv -v "/home/runner/.ssh/id_ed25519.bak" "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
               echo -e "${BLUE_COLOR}${BOLD_TEXT}Private SSH Key created - proceeding.{UNSET_COLOR}"
             fi
           else
-            echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519" &> /dev/null
+            echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Private SSH Key created - proceeding.{UNSET_COLOR}"
           fi
 
-          chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> /dev/null
+          chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
 
-          if rsync -a --delete -e "ssh -v -i /home/runner/.ssh/id_ed25519" "$GITHUB_WORKSPACE/repo/" "$REMOTE" &> /dev/null; then
+          if rsync -a --delete -e "ssh -v -i /home/runner/.ssh/id_ed25519" "$GITHUB_WORKSPACE/repo/" "$REMOTE" &> $DEBUG_OFF; then
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
           else
             echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
