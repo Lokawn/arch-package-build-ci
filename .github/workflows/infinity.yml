@@ -53,26 +53,28 @@ jobs:
         if: ${{ env.VARIANT != 'git' }}
         shell: bash
         run: |
+          set -x
           printf "${RED_COLOR}[IMPORTANT]\n"
           printf "Using archive as source package.${UNSET_COLOR}\n"
 
+          set +x
           latest_tag=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" \
             | grep "\"tag_name\":" | cut -d \" -f 4)
 
           latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
 
           wget --quiet -O "${REPO#*/}.tar.gz" "${latest_url}" && \
-          tar xf  "${REPO#*/}.tar.gz" && \
+          tar xf "${REPO#*/}.tar.gz" && \
           mv "${REPO#*/}-${latest_tag#*v}" "${REPO#*/}" && \
           rm -f "${REPO#*/}.tar.gz"
 
-          echo "APK_RELEASE_VERSION='RELEASE'" >> "$GITHUB_ENV"
+          echo "APK_BUILDTYPE='RELEASE'" >> "$GITHUB_ENV"
 
       - name: "Set Release version for git builds."
         if: ${{ env.VARIANT == 'git' }}
         shell: bash
         run: |
-          echo "APK_RELEASE_VERSION='GIT'" >> "$GITHUB_ENV"
+          echo "APK_BUILDTYPE='GIT'" >> "$GITHUB_ENV"
 
       - name: "Build source and compress APKs."
         shell: bash
@@ -84,8 +86,10 @@ jobs:
                 -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"
           #TODO: Compress APKs.
           else
+            set -x
             printf "${RED_COLOR}[IMPORTANT]\n"
             printf "API_TOKEN not provided building debug apk.${UNSET_COLOR}\n"
+            set +x
             ./gradlew assembledebug
             echo "APK_VARIANT_DEBUG='true'" >> "$GITHUB_ENV"
           fi
@@ -98,6 +102,10 @@ jobs:
           HOST: ${{ secrets.HOST }}
         shell: bash
         run: |
+          env
+          
+          echo -e "\n\n"
+        
           if ! grep -Fxq "$HOST" "/home/runner/.ssh/known_hosts"; then
             if ! echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> /dev/null; then
               echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}"
