@@ -9,9 +9,6 @@ env:
   # Setting an environment variable with the value of a configuration variable
   VARIANT: ${{ vars.VARIANT_INFINITY }}
   REPO: 'Docile-Alligator/Infinity-For-Reddit'
-  REDIRECT_URL: 'http://127.0.0.1'
-  API_TOKEN: ${{ secrets.API_TOKEN-INFINITY }}
-  USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
   # setup colors
   RED_COLOR: '\e[1;31m'
   ORANGE_COLOR: '\e[1;33m'
@@ -25,7 +22,7 @@ permissions:
 jobs:
   build_job:
     name: Build Job.
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
@@ -35,35 +32,43 @@ jobs:
         run: |
           echo "/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
           sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" &> /dev/null
+          
+          echo "APP_NAME=${REPO#*/}" >> "$GITHUB_ENV"
 
-      - name: "Checkout Infinity-For-Reddit repository."
+      - name: "Checkout ${{ env.APP_NAME }} repository."
         if: ${{ env.VARIANT == 'git' }}
         uses: actions/checkout@v4
         with:
           persist-credentials: false
           show-progress: false
           repository: ${{ env.REPO }}
+          path: ${{ env.APP_NAME }}
 
       - name: "Fetch source archive."
         if: ${{ env.VARIANT != 'git' }}
         run: |
-          printf "${ORANGE_COLOR}NOTE: Using archive git as source.${UNSET_COLOR}\n"
+          printf "${ORANGE_COLOR}NOTE: Using git archive as source.${UNSET_COLOR}\n"
 
           latest_tag=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" \
             | grep "\"tag_name\":" | cut -d \" -f 4)
 
           latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
 
-          wget --quiet -O "${REPO#*/}.tar.gz" "${latest_url}" && \
-          tar xf "${REPO#*/}.tar.gz" && \
-          mv "${REPO#*/}-${latest_tag#*v}" "${REPO#*/}" && \
-          rm -f "${REPO#*/}.tar.gz"
+          wget --quiet -O "${APP_NAME}.tar.gz" "${latest_url}" && \
+          tar xf "${APP_NAME}.tar.gz" && \
+          mv "${APP_NAME}-${latest_tag#*v}" "${APP_NAME}" && \
+          rm -f "${APP_NAME}.tar.gz"
 
       - name: "Build source and compress APKs."
+        env:
+            REDIRECT_URL: 'http://127.0.0.1'
+            API_TOKEN: ${{ secrets.API_TOKEN-INFINITY }}
+            USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
         run: |
-          cd "${REPO#*/}"
+          cd "${APP_NAME}"
           pwd
-          cd ~/ && exit 1
+          cd ~/ 
+          pwd && exit 1
           if [[ -n "${API_TOKEN}" ]]; then
             sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${API_TOKEN}\"#" \
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
@@ -73,7 +78,7 @@ jobs:
             printf "${ORANGE_COLOR}NOTE: API_TOKEN not provided, building debug apk.${UNSET_COLOR}\n\n"
             ./gradlew assembleDebug
             echo "APK_VARIANT_DEBUG=true" >> "$GITHUB_ENV"
-            mv "~/${REPO#*/}/app/build/outputs/apk/debug/app-debug.apk" "~/infinity-debug.apk"
+            mv "~/${APP_NAME}/app/build/outputs/apk/debug/app-debug.apk" "~/${APP_NAME}-debug.apk"
           fi
 
       - uses: actions/upload-artifact@v3
@@ -81,13 +86,13 @@ jobs:
         if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
         with:
           name: Upload debug APK.
-          path: /home/workspace/infinity-debug.apk
+          path: /home/runner/work/arch-package-build-ci/arch-package-build-ci/${{ env.APP_NAME }}-debug.apk
 
       - uses: actions/upload-artifact@v3
         if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
         with:
           name: Upload debug APK.
-          path: /home/workspace/infinity-debug.apk
+          path: /home/runner/work/arch-package-build-ci/arch-package-build-ci/${{ env.APP_NAME }}-debug.apk
 
       - name: "Upload compressed APK."
         if: ${{ env.APK_VARIANT_DEBUG != 'true' }}
