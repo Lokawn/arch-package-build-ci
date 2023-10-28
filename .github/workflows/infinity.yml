@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
-        shell: pwsh
+        shell: bash
 
     steps:
       - name: "Set-up PATH and update build tools."
