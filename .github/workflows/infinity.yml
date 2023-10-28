@@ -23,8 +23,8 @@ permissions:
   contents: read
 
 jobs:
-  name: Build Job.
   build_job:
+    name: Build Job.
     runs-on: ubuntu-22.04
     defaults:
       run:
