@@ -91,7 +91,7 @@ jobs:
             printf "API_TOKEN not provided building debug apk.${UNSET_COLOR}\n"
             set +x
             ./gradlew assembledebug
-            echo "APK_VARIANT_DEBUG='true'" >> "$GITHUB_ENV"
+            echo "APK_VARIANT_DEBUG=true" >> "$GITHUB_ENV"
           fi
 
       - name: "Upload compressed APK."
