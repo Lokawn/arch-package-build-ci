@@ -32,14 +32,11 @@ jobs:
         shell: bash
         run: |
           echo "/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
-          PATH="$PATH":"/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools"
 
-          sudo apt-get --assume-yes --quiet update
-          sudo apt-get --assume-yes --quiet --quiet upgrade
+          sudo apt-get --assume-yes --quiet update &> /dev/null
+          sudo apt-get --assume-yes --quiet --quiet upgrade &> /dev/null
 
           sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" 
-
-          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager --list
 
       - name: "Checkout Infinity-For-Reddit repository."
         if: ${{ env.VARIANT == 'git' }}
@@ -68,14 +65,6 @@ jobs:
           mv "${REPO#*/}-${latest_tag#*v}" "${REPO#*/}" && \
           rm -f "${REPO#*/}.tar.gz"
 
-          echo "APK_BUILDTYPE='RELEASE'" >> "$GITHUB_ENV"
-
-      - name: "Set Release version for git builds."
-        if: ${{ env.VARIANT == 'git' }}
-        shell: bash
-        run: |
-          echo "APK_BUILDTYPE='GIT'" >> "$GITHUB_ENV"
-
       - name: "Build source and compress APKs."
         shell: bash
         run: |
@@ -87,8 +76,11 @@ jobs:
           #TODO: Compress APKs.
           else
             set -x
-            printf "${RED_COLOR}[IMPORTANT]\n"
-            printf "API_TOKEN not provided building debug apk.${UNSET_COLOR}\n"
+            printf "${RED_COLOR}NOTE: API_TOKEN not provided building debug apk.${UNSET_COLOR}\n\n"
+            printf "${RED_COLOR}[NOTE]: API_TOKEN not provided building debug apk.${UNSET_COLOR}\n\n"
+            printf "${RED_COLOR}[NOTE]"
+            printf "API_TOKEN not provided building debug apk.${UNSET_COLOR}\n\n"
+            echo -e "${RED_COLOR}NOTE: API_TOKEN not provided building debug apk.${UNSET_COLOR}\n\n"
             set +x
             ./gradlew assembledebug
             echo "APK_VARIANT_DEBUG=true" >> "$GITHUB_ENV"
@@ -101,12 +93,8 @@ jobs:
           REMOTE: ${{ secrets.REMOTE_ANDROID }}
           HOST: ${{ secrets.HOST }}
         shell: bash
-        run: |
-          env
-          
-          echo -e "\n\n"
-        
-          if ! grep -Fxq "$HOST" "/home/runner/.ssh/known_hosts"; then
+        run: |        
+          if ! grep -Fxq "$HOST" "/home/runner/.ssh/known_hosts" &> /dev/null; then
             if ! echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> /dev/null; then
               echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}"
               exit 1
