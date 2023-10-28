@@ -23,12 +23,15 @@ permissions:
   contents: read
 
 jobs:
+  name: Build Job.
   build_job:
     runs-on: ubuntu-22.04
+    defaults:
+      run:
+        shell: pwsh
 
     steps:
       - name: "Set-up PATH and update build tools."
-        shell: bash
         run: |
           echo "/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
           sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" &> /dev/null
@@ -43,12 +46,8 @@ jobs:
 
       - name: "Fetch source archive."
         if: ${{ env.VARIANT != 'git' }}
-        shell: bash
         run: |
-          set -x
-          printf "${ORANGE_COLOR}[IMPORTANT]\n"
-          printf "Using archive as source package.${UNSET_COLOR}\n"
-          set +x
+          printf "${ORANGE_COLOR}NOTE: Using archive git as source.${UNSET_COLOR}\n"
 
           latest_tag=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" \
             | grep "\"tag_name\":" | cut -d \" -f 4)
@@ -61,18 +60,17 @@ jobs:
           rm -f "${REPO#*/}.tar.gz"
 
       - name: "Build source and compress APKs."
-        shell: bash
         run: |
           cd "${REPO#*/}"
+          pwd
+          cd ~/ && exit 1
           if [[ -n "${API_TOKEN}" ]]; then
             sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${API_TOKEN}\"#" \
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
                 -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"
           #TODO: Compress APKs.
           else
-            set -x
             printf "${ORANGE_COLOR}NOTE: API_TOKEN not provided, building debug apk.${UNSET_COLOR}\n\n"
-            set +
             ./gradlew assembleDebug
             echo "APK_VARIANT_DEBUG=true" >> "$GITHUB_ENV"
             mv "~/${REPO#*/}/app/build/outputs/apk/debug/app-debug.apk" "~/infinity-debug.apk"
@@ -97,7 +95,6 @@ jobs:
           SSHKEY: ${{ secrets.SSHKEY }}
           REMOTE: ${{ secrets.REMOTE_ANDROID }}
           HOST: ${{ secrets.HOST }}
-        shell: bash
         run: |        
           if ! grep -Fxq "$HOST" "/home/runner/.ssh/known_hosts" &> /dev/null; then
             if ! echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> /dev/null; then
