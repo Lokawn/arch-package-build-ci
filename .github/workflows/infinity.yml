@@ -77,7 +77,8 @@ jobs:
             USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
         run: |
           [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
-
+          
+          cd "${GITHUB_WORKSPACE}/${APP_NAME}"
           if [[ -n "${API_TOKEN}" ]]; then
             sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${API_TOKEN}\"#" \
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
