@@ -37,9 +37,9 @@ jobs:
           sudo apt-get --assume-yes --quiet update
           sudo apt-get --assume-yes --quiet --quiet upgrade
 
-          sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" 
+          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" 
 
-          sudo /usr/local/lib/android/sdk/tools/bin/sdkmanager --list_installed
+          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager --list
 
       - name: "Checkout Infinity-For-Reddit repository."
         if: ${{ env.VARIANT == 'git' }}
