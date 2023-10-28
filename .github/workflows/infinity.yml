@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: "Setup for debugging workflow."
-        if: ${{ env.RUNNER_DEBUG == '1' }}
+        if: ${{ runner.debug == '1' }}
         run: |
           set -x
           echo -e "set -x\nexport DEBUG_OFF='/dev/stdout'" > ${GITHUB_WORKSPACE}/debug.sh
