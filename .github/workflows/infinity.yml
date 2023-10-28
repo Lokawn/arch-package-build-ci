@@ -48,7 +48,7 @@ jobs:
           repository: ${{ env.REPO }}
 
       - name: "Fetch source archive."
-        if: ${{ env.VARIANT != 'git' }} && ${{  }}
+        if: ${{ env.VARIANT != 'git' }}
         shell: bash
         run: |
           printf "${RED_COLOR}[IMPORTANT]\n"
