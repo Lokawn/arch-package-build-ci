@@ -40,7 +40,8 @@ jobs:
           [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
 
           echo "/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
-          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0"  &> $DEBUG_OFF
+          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" &> $DEBUG_OFF
+          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager --update &> $DEBUG_OFF
 
           echo "APP_NAME=${REPO#*/}" >> "$GITHUB_ENV"
 
@@ -96,13 +97,7 @@ jobs:
         if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
         with:
           name: Upload debug APK.
-          path: ${{ env.GITHUB_WORKSPACE }}/${{ env.APP_NAME }}-debug.apk
-
-      - uses: actions/upload-artifact@v3
-        if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
-        with:
-          name: Upload debug APK.
-          path: ${{ env.GITHUB_WORKSPACE }}/${{ env.APP_NAME }}-debug.apk
+          path: ${{ github.workspace }}/${{ env.APP_NAME }}-debug.apk
 
       - name: "Upload compressed APK."
         if: ${{ env.APK_VARIANT_DEBUG != 'true' }}
