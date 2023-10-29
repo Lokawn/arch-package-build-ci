@@ -78,29 +78,36 @@ jobs:
             USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
         run: |
           [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
-          
-          cd "${GITHUB_WORKSPACE}/${APP_NAME}"
+          export APPDIR="${GITHUB_WORKSPACE}/${APP_NAME}"
+          echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
+          cd "${APPDIR}"
+          apiutils_file="${APPDIR}/app/src/main/java/ml/docilealligator/infinityforreddit/utils/APIUtils.java"
           if [[ -n "${API_TOKEN}" ]]; then
             sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${API_TOKEN}\"#" \
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
                 -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"  &> $DEBUG_OFF
-          #TODO: Compress APKs.
+            ./gradlew assembleRelease &> $DEBUG_OFF
+            ./gradlew assembleMinifiedRelease &> $DEBUG_OFF
+            mkdir -pv "${APPDIR}-default"
+            mv -vf "${APPDIR}/app/build/outputs/apk/{minifiedRelease,release}/*.apk" "${APPDIR}-default/" &> $DEBUG_OFF
+            cp -vf "${apiutils_file}" "${APPDIR}-default/" &> $DEBUG_OFF
           else
-            printf "${ORANGE_COLOR}NOTE: API_TOKEN not provided, building debug apk.${UNSET_COLOR}\n\n"
-            ./gradlew assembleDebug &> $DEBUG_OFF
-            echo "APK_VARIANT_DEBUG=true" >> "$GITHUB_ENV"
-            mv -vf "${GITHUB_WORKSPACE}/${APP_NAME}/app/build/outputs/apk/debug/app-debug.apk" "${GITHUB_WORKSPACE}/${APP_NAME}-debug.apk" &> $DEBUG_OFF
+            printf "${ORANGE_COLOR}NOTE: API_TOKEN not provided, building default apk.${UNSET_COLOR}\n\n"
+            ./gradlew assemble &> $DEBUG_OFF
+            echo "APK_VARIANT_DEFAULT=true" >> "$GITHUB_ENV"
+            mkdir -pv "${APPDIR}-default"
+            mv -vf "${APPDIR}/app/build/outputs/apk/{debug,minifiedRelease,release}/*.apk" "${APPDIR}-default/" &> $DEBUG_OFF
           fi
 
       - uses: actions/upload-artifact@v3
-        name: Upload debug APK as artifact.
-        if: ${{ env.APK_VARIANT_DEBUG == 'true' }}
+        name: Upload default APKs as artifact.
+        if: ${{ env.APK_VARIANT_DEFAULT == 'true' }}
         with:
-          name: Upload debug APK.
-          path: ${{ github.workspace }}/${{ env.APP_NAME }}-debug.apk
+          name: Default APKs
+          path: ${{ env.APPDIR }}-default/*.apk
 
       - name: "Upload compressed APK."
-        if: ${{ env.APK_VARIANT_DEBUG != 'true' }}
+        if: ${{ env.APK_VARIANT_DEFAULT != 'true' }}
         env:
           SSHKEY: ${{ secrets.SSHKEY }}
           REMOTE: ${{ secrets.REMOTE_ANDROID }}
