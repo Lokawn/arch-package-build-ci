@@ -103,8 +103,7 @@ jobs:
             cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
             for type in minifiedRelease/*.apk release/*.apk; do
-              ls ${APPDIR}/app/build/outputs/apk/${type} "${APPDIR}/app/build/outputs/apk/${type}"
-              mv -vf "${APPDIR}/app/build/outputs/apk/${type}" "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
+              mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
             tar -C "${GITHUB_WORKSPACE}/apks" -cf "${GITHUB_WORKSPACE}/infinity-apks.tar.zst" .  &> $DEBUG_OFF
             
