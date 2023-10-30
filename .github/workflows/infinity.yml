@@ -36,6 +36,8 @@ jobs:
           echo -e "set -x\nexport DEBUG_OFF='/dev/stdout'" > ${GITHUB_WORKSPACE}/debug.sh
 
       - name: "Set-up PATH and update build tools."
+        env: 
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
         run: |
           [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
 
@@ -44,6 +46,8 @@ jobs:
           sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager --update &> $DEBUG_OFF
 
           echo "APP_NAME=${REPO#*/}" >> "$GITHUB_ENV"
+          echo -e "${PUBLIC_KEY}" | \
+            gpg --batch --import &> $DEBUG_OFF            
 
       - name: "Checkout ${{ env.APP_NAME }} repository."
         if: ${{ env.VARIANT == 'git' }}
@@ -76,42 +80,54 @@ jobs:
             REDIRECT_URL: 'http://127.0.0.1'
             API_TOKEN: ${{ secrets.API_TOKEN-INFINITY }}
             USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
+            KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
         run: |
           [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+
           export APPDIR="${GITHUB_WORKSPACE}/${APP_NAME}"
           echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
+
           cd "${APPDIR}"
+
           apiutils_file="${APPDIR}/app/src/main/java/ml/docilealligator/infinityforreddit/utils/APIUtils.java"
+
           if [[ -n "${API_TOKEN}" ]]; then
             sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${API_TOKEN}\"#" \
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
                 -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"  &> $DEBUG_OFF
+
             ./gradlew assembleRelease &> $DEBUG_OFF
             ./gradlew assembleMinifiedRelease &> $DEBUG_OFF
-            mkdir -pv "${APPDIR}-APK"
-            mv -vf "${APPDIR}/app/build/outputs/apk/{minifiedRelease,release}/*.apk" "${APPDIR}-APK/" &> $DEBUG_OFF
-            cp -vf "${apiutils_file}" "${APPDIR}-APK/" &> $DEBUG_OFF
+
+            mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
+            cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks"
+
+            for type in minifiedRelease release; do
+              mv -vf "${APPDIR}/app/build/outputs/apk/${type}/*.apk" "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
+            done
+            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${GITHUB_WORKSPACE}/infinity-apks.tar.zst" .  &> $DEBUG_OFF
+            
+            gpg --always-trust -er "${KEY_FINGERPRINT}" \
+              -o "${GITHUB_WORKSPACE}/infinity-apks.tar.zst.gpg" \
+                "${GITHUB_WORKSPACE}/infinity-apks.tar.zst"
           else
             printf "${ORANGE_COLOR}NOTE: API_TOKEN not provided, building default apk.${UNSET_COLOR}\n\n"
             ./gradlew assemble &> $DEBUG_OFF
-            echo "APK_VARIANT_DEFAULT=true" >> "$GITHUB_ENV"
-            mkdir -pv "${APPDIR}-default"
-            mv -vf "${APPDIR}/app/build/outputs/apk/{debug,minifiedRelease,release}/*.apk" "${APPDIR}-default/" &> $DEBUG_OFF
           fi
 
       - uses: actions/upload-artifact@v3
-        name: Upload APKs as artifact.
-        if: ${{ env.APK_VARIANT_DEFAULT == 'true' }}
+        name: Upload ${{ env.APP_NAME }} default APKs as artifact.
         with:
-          name: Default APKs
-          path: ${{ env.APPDIR }}-default/*.apk
+          name: ${{ env.APP_NAME }} default APKs
+          path: |
+            ${{ env.APPDIR }}/app/build/outputs/apk/*/*.apk
 
       - uses: actions/upload-artifact@v3
-        name: Upload APKs as artifact.
-        if: ${{ env.APK_VARIANT_DEFAULT != 'true' }}
+        name: Upload ${{ env.APP_NAME }} APKs as artifact.
         with:
-          name: Infinity APKs
-          path: ${{ env.APPDIR }}-APK/*.ap
+          name: ${{ env.APP_NAME }} APKs
+          path: |
+            ${{ github.workspace }}/infinity-apks.tar.zst.gpg
 
 #      - name: "Upload compressed APK."
 #        if: ${{ env.APK_VARIANT_DEFAULT != 'true' }}
