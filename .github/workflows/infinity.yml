@@ -98,7 +98,7 @@ jobs:
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
                 -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"  &> $DEBUG_OFF
 
-            echo -e "${KEYSTORE_TEXT}" | base -d > ${GITHUB_WORKSPACE}/keystore.pkcs
+            echo -e "${KEYSTORE_TEXT}" | base64 -d > ${GITHUB_WORKSPACE}/keystore.pkcs
             export KEYSTORE_PKCS="${GITHUB_WORKSPACE}/keystore.pkcs"
 
             string1="release {\n            minifyEnabled false"
