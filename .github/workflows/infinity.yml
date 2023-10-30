@@ -100,16 +100,17 @@ jobs:
             ./gradlew assembleMinifiedRelease &> $DEBUG_OFF
 
             mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
-            cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks"
+            cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
             for type in minifiedRelease/*.apk release/*.apk; do
+              ls "${APPDIR}/app/build/outputs/apk/${type} "${APPDIR}/app/build/outputs/apk/${type}"
               mv -vf "${APPDIR}/app/build/outputs/apk/${type}" "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
             tar -C "${GITHUB_WORKSPACE}/apks" -cf "${GITHUB_WORKSPACE}/infinity-apks.tar.zst" .  &> $DEBUG_OFF
             
             gpg --always-trust -er "${KEY_FINGERPRINT}" \
               -o "${GITHUB_WORKSPACE}/infinity-apks.tar.zst.gpg" \
-                "${GITHUB_WORKSPACE}/infinity-apks.tar.zst"
+                "${GITHUB_WORKSPACE}/infinity-apks.tar.zst" &> $DEBUG_OFF
           else
             printf "${ORANGE_COLOR}NOTE: API_TOKEN not provided, building default apk.${UNSET_COLOR}\n\n"
             ./gradlew assemble &> $DEBUG_OFF
