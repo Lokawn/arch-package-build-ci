@@ -102,8 +102,8 @@ jobs:
             mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
             cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks"
 
-            for type in minifiedRelease release; do
-              mv -vf "${APPDIR}/app/build/outputs/apk/${type}/*.apk" "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
+            for type in "minifiedRelease/*.apk" "release/*.apk"; do
+              mv -vf "${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
             tar -C "${GITHUB_WORKSPACE}/apks" -cf "${GITHUB_WORKSPACE}/infinity-apks.tar.zst" .  &> $DEBUG_OFF
             
