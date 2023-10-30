@@ -102,9 +102,11 @@ jobs:
             mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
             cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks"
 
+            set +o noglob
             for type in "minifiedRelease/*.apk" "release/*.apk"; do
               mv -vf "${APPDIR}/app/build/outputs/apk/${type}" "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
+            set -o noglob
             tar -C "${GITHUB_WORKSPACE}/apks" -cf "${GITHUB_WORKSPACE}/infinity-apks.tar.zst" .  &> $DEBUG_OFF
             
             gpg --always-trust -er "${KEY_FINGERPRINT}" \
