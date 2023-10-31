@@ -95,10 +95,10 @@ jobs:
             USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
             KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
             KEYSTORE_PASSPHRASE: ${{ secrets.KEYSTORE_PASSPHRASE }}
-            ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
-            ANDROID_NDK: ${{ env.ANDROID_NDK_LATEST_HOME }}
-            ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_LATEST_HOME }}
-            KEYSTORE_PKCS: '${{ github.workspace }}/keystore.pkcs'
+            ANDROID_NDK_HOME: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
+            ANDROID_NDK: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
+            ANDROID_NDK_ROOT: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
+            KEYSTORE_PKCS: ${{ github.workspace }}/keystore.pkcs
 
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
@@ -150,6 +150,8 @@ jobs:
       - name: "Prepare build.gradle for artifact."  
         if: ${{ failure() && steps.main_step.outcome == 'failure' }}
         run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
           cp -avf "${APPDIR}/app/build.gradle" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
           tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-artifacts.tar" .  &> $DEBUG_OFF
