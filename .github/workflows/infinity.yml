@@ -30,7 +30,11 @@ jobs:
         shell: bash
 
     steps:
-
+      - name: "Check Environment."
+        if: ${{ runner.debug == '1' }}
+        run: |
+            env
+        
       - name: "Setup for debugging workflow."
         if: ${{ runner.debug == '1' }}
         run: |
@@ -40,6 +44,7 @@ jobs:
       - name: "Set-up PATH and update build tools."
         env: 
           PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+          KEYSTORE_TEXT: ${{ secrets.KEYSTORE_TEXT }}
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
@@ -49,7 +54,9 @@ jobs:
 
           echo "APP_NAME=${REPO#*/}" >> "$GITHUB_ENV"
           echo -e "${PUBLIC_KEY}" | \
-            gpg --batch --import &> $DEBUG_OFF     
+            gpg --batch --import &> $DEBUG_OFF
+
+          echo -e "${KEYSTORE_TEXT}" | base64 -d > "${GITHUB_WORKSPACE}/keystore.pkcs"
 
       - name: "Checkout ${{ env.APP_NAME }} repository."
         if: ${{ env.VARIANT == 'git' }}
@@ -77,8 +84,10 @@ jobs:
           mv -vf "${APP_NAME}-${latest_tag#*v}" "${APP_NAME}" &> $DEBUG_OFF && \
           rm -vf "${APP_NAME}.tar.gz" &> $DEBUG_OFF
 
+          echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
+
       - name: "Build source and compress APKs."
-        id: main-job
+        id: main_step
         if: ${{ env.YAML_DEBUG == 'false' }}
         env:
             REDIRECT_URL: 'http://127.0.0.1'
@@ -86,16 +95,13 @@ jobs:
             USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
             KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
             KEYSTORE_PASSPHRASE: ${{ secrets.KEYSTORE_PASSPHRASE }}
-            KEYSTORE_TEXT: ${{ secrets.KEYSTORE_TEXT }}
             ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_LATEST_HOME }}
             ANDROID_NDK: ${{ env.ANDROID_NDK_LATEST_HOME }}
             ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_LATEST_HOME }}
+            KEYSTORE_PKCS: '${{ github.workspace }}/keystore.pkcs'
 
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
-
-          export APPDIR="${GITHUB_WORKSPACE}/${APP_NAME}"
-          echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
 
           cd "${APPDIR}"
 
@@ -107,10 +113,6 @@ jobs:
             sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${API_TOKEN}\"#" \
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
                 -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"  &> $DEBUG_OFF
-
-            echo -e "${KEYSTORE_TEXT}" | base64 -d > ${GITHUB_WORKSPACE}/keystore.pkcs
-            KEYSTORE_PKCS="${GITHUB_WORKSPACE}/keystore.pkcs"
-            export KEYSTORE_PASSPHRASE KEYSTORE_PKCS GITHUB_ACTOR
 
             string1="release {\n            minifyEnabled false"
             string2="minifiedRelease {\n            initWith buildTypes.release"
@@ -146,7 +148,7 @@ jobs:
           fi
 
       - name: "Prepare build.gradle for artifact."  
-        if: ${{ steps.main-job.outcome == 'failure' }}
+        if: ${{ failure() && steps.main_step.outcome == 'failure' }}
         run: |
           cp -avf "${APPDIR}/app/build.gradle" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
@@ -157,7 +159,7 @@ jobs:
                 "${APPDIR}-artifacts.tar" &> $DEBUG_OFF
 
       - uses: actions/upload-artifact@v3
-        if: ${{ steps.main-job.outcome == 'failure' }}
+        if: ${{ steps.main_step.outcome == 'failure' }}
         name: Upload ${{ env.APP_NAME }} build failure artifacts.
         with:
           name: ${{ env.APP_NAME }} artifacts
