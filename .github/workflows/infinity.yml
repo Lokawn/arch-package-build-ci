@@ -16,7 +16,7 @@ env:
   BLUE_COLOR: '\e[0;34m'
   BOLD_TEXT: '\e[1m'
   UNSET_COLOR: '\e[0m'
-  YAML_DEBUG true
+  YAML_DEBUG: true
 
 permissions:
   contents: read
