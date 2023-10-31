@@ -112,6 +112,10 @@ jobs:
                 s/$string2/$newstring2/;\
                 s/$string3/$newstring3/" build.gradle
 
+            export ANDROID_NDK_HOME="${ANDROID_NDK_LATEST_HOME}"
+            ANDROID_NDK"${ANDROID_NDK_LATEST_HOME}"
+            ANDROID_NDK_ROOT"${ANDROID_NDK_LATEST_HOME}"
+
             ./gradlew assembleRelease &> $DEBUG_OFF
             ./gradlew assembleMinifiedRelease &> $DEBUG_OFF
 
@@ -121,11 +125,13 @@ jobs:
             for type in minifiedRelease/*.apk release/*.apk; do
               mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
-            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${GITHUB_WORKSPACE}/infinity-apks.tar.zst" .  &> $DEBUG_OFF
+            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks.tar.zst" .  &> $DEBUG_OFF
 
             gpg --always-trust -er "${KEY_FINGERPRINT}" \
-              -o "${GITHUB_WORKSPACE}/infinity-apks.tar.zst.gpg" \
-                "${GITHUB_WORKSPACE}/infinity-apks.tar.zst" &> $DEBUG_OFF
+              -o "${APPDIR}-apks.tar.zst.gpg" \
+                "${APPDIR}-apks.tar.zst" &> $DEBUG_OFF
+
+            echo "${APP_NAME}_UPSTREAM_BUILD=false" >> "$GITHUB_ENV"
           else
             printf "${ORANGE_COLOR}NOTE: API_TOKEN not provided, building upstream apks.${UNSET_COLOR}\n\n"
             ./gradlew assemble &> $DEBUG_OFF
@@ -142,11 +148,12 @@ jobs:
             ${{ env.APPDIR }}/app/build/outputs/apk/*/*.apk
 
       - uses: actions/upload-artifact@v3
+      if: ${{ ! env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] }}
         name: Upload ${{ env.APP_NAME }} APKs as artifact.
         with:
           name: ${{ env.APP_NAME }} APKs
           path: |
-            ${{ github.workspace }}/${{ env.APP_NAME }}-apks.tar.zst.gpg
+            ${{ env.APP_DIR }}-apks.tar.zst.gpg
 
 #      - name: "Upload compressed APK."
 #        if: ${{ env.APK_VARIANT_DEFAULT != 'true' }}
