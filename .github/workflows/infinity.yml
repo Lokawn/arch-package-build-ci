@@ -40,7 +40,7 @@ jobs:
         env: 
           PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
         run: |
-          [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
           echo "/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
           sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" &> $DEBUG_OFF
@@ -62,7 +62,7 @@ jobs:
       - name: "Fetch source archive."
         if: ${{ env.VARIANT != 'git' }}
         run: |
-          [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
           printf "${ORANGE_COLOR}NOTE: Using git archive as source.${UNSET_COLOR}\n"
 
@@ -86,7 +86,7 @@ jobs:
             KEYSTORE_PASSPHRASE: ${{ secrets.KEYSTORE_PASSPHRASE }}
             KEYSTORE_TEXT: ${{ secrets.KEYSTORE_TEXT }}
         run: |
-          [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
           export APPDIR="${GITHUB_WORKSPACE}/${APP_NAME}"
           echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
@@ -103,14 +103,15 @@ jobs:
                 -e "s#public static final String USER_AGENT = \".*\";#public static final String USER_AGENT = \"${USER_AGENT}\";#" "${apiutils_file}"  &> $DEBUG_OFF
 
             echo -e "${KEYSTORE_TEXT}" | base64 -d > ${GITHUB_WORKSPACE}/keystore.pkcs
-            export KEYSTORE_PKCS="${GITHUB_WORKSPACE}/keystore.pkcs"
+            KEYSTORE_PKCS="${GITHUB_WORKSPACE}/keystore.pkcs"
+            export "${KEYSTORE_PASSPHRASE}" "${KEYSTORE_PKCS}" "${GITHUB_ACTOR}"
 
             string1="release {\n            minifyEnabled false"
             string2="minifiedRelease {\n            initWith buildTypes.release"
             string3="}\n    buildTypes {\n        release {"
             newstring1="release {\n        signingConfig signingConfigs.release\n        minifyEnabled false"
             newstring2="minifiedRelease {\n        signingConfig signingConfigs.release\n        initWith buildTypes.release"
-            newstring3="}\n    signingConfigs {\n    release {\n        storeFile new File(System.getenv("KEYSTORE_PKCS"))\n        storePassword System.getenv("KEYSTORE_PASSPHRASE")\n        keyAlias System.getenv("GITHUB_ACTOR")\n        keyPassword System.getenv("KEYSTORE_PASSPHRASE")\n    }\n    }\n    buildTypes {\n    release {"
+            newstring3="}\n    signingConfigs {\n    release {\n        storeFile new File(String.valueOf(System.getenv("KEYSTORE_PKCS")))\n        storePassword System.getenv("KEYSTORE_PASSPHRASE")\n        keyAlias System.getenv("GITHUB_ACTOR")\n        keyPassword System.getenv("KEYSTORE_PASSPHRASE")\n    }\n    }\n    buildTypes {\n    release {"
             
             perl -i -0777 -pe "s/$string1/$newstring1/;\ 
                 s/$string2/$newstring2/;\
@@ -121,11 +122,10 @@ jobs:
             export ANDROID_NDK"=${ANDROID_NDK_LATEST_HOME}"
             export ANDROID_NDK_ROOT="${ANDROID_NDK_LATEST_HOME}"
 
-            ./gradlew assembleRelease &> $DEBUG_OFF
-            ./gradlew assembleMinifiedRelease &> $DEBUG_OFF
-
             mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
             cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
+
+            ./gradlew assembleRelease assembleMinifiedRelease  &> $DEBUG_OFF || cp -avf "${app_build_gradle_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
             for type in minifiedRelease/*.apk release/*.apk; do
               mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
@@ -167,7 +167,7 @@ jobs:
 #          REMOTE: ${{ secrets.REMOTE_ANDROID }}
 #          HOST: ${{ secrets.HOST }}
 #        run: |
-#          [[ -f ${GITHUB_WORKSPACE}/debug.sh ]] && source ${GITHUB_WORKSPACE}/debug.sh
+#          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
 #          if ! grep -Fxq "$HOST" "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF; then
 #            if ! echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF; then
