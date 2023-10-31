@@ -168,7 +168,7 @@ jobs:
         with:
           name: ${{ env.APP_NAME }} artifacts
           path: |
-            " ${{ env.APPDIR }}-artifacts.tar.gpg"
+            "${{ env.APPDIR }}-artifacts.tar.gpg"
 
       - uses: actions/upload-artifact@v3
         # ${{ env.${{ env.APP_NAME }}_UPSTREAM_BUILD == yes }}, nesting doesn't work.
