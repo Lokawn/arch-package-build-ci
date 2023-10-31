@@ -118,7 +118,7 @@ jobs:
             string3="}\n    buildTypes {\n        release {"
             newstring1="release {\n            signingConfig signingConfigs.release\n            minifyEnabled false"
             newstring2="minifiedRelease {\n            signingConfig signingConfigs.release\n            initWith buildTypes.release"
-            newstring3="}\n    signingConfigs {\n        release {\n            storeFile new File(String.valueOf(System.getenv("KEYSTORE_PKCS")))\n            storePassword System.getenv("KEYSTORE_PASSPHRASE")\n            keyAlias System.getenv("GITHUB_ACTOR")\n            keyPassword System.getenv("KEYSTORE_PASSPHRASE")\n        }\n    }\n    buildTypes {\n        release {"
+            newstring3="}\n    signingConfigs {\n        release {\n            storeFile new File(System.getenv()[\"KEYSTORE_PKCS\"])\n            storePassword System.getenv()[\"KEYSTORE_PASSPHRASE\"]\n            keyAlias System.getenv()[\"GITHUB_ACTOR\"]\n            keyPassword System.getenv()[\"KEYSTORE_PASSPHRASE\"]\n        }\n    }\n    buildTypes {\n        release {"
 
             perl -i -0777 -pe "s/$string1/$newstring1/;\
                 s/$string2/$newstring2/;\
