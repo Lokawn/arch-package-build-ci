@@ -95,6 +95,8 @@ jobs:
 
           apiutils_file="${APPDIR}/app/src/main/java/ml/docilealligator/infinityforreddit/utils/APIUtils.java"
 
+          app_build_gradle_file="${APPDIR}/app/build.gradle"
+
           if [[ -n "${API_TOKEN}" ]]; then
             sed -i -e "s#\"NOe2iKrPPzwscA\"#\"${API_TOKEN}\"#" \
                 -e "s#\"infinity://localhost\"#\"${REDIRECT_URL}\"#" \
@@ -112,7 +114,8 @@ jobs:
             
             perl -i -0777 -pe "s/$string1/$newstring1/;\ 
                 s/$string2/$newstring2/;\
-                s/$string3/$newstring3/" build.gradle
+                s/$string3/$newstring3/" \
+                "${app_build_gradle_file}"
 
             export ANDROID_NDK_HOME="${ANDROID_NDK_LATEST_HOME}"
             export ANDROID_NDK"=${ANDROID_NDK_LATEST_HOME}"
