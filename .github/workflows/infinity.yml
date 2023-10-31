@@ -99,7 +99,6 @@ jobs:
             ANDROID_NDK: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
             ANDROID_NDK_ROOT: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
             KEYSTORE_PKCS: ${{ github.workspace }}/keystore.pkcs
-
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
@@ -117,9 +116,9 @@ jobs:
             string1="release {\n            minifyEnabled false"
             string2="minifiedRelease {\n            initWith buildTypes.release"
             string3="}\n    buildTypes {\n        release {"
-            newstring1="release {\n        signingConfig signingConfigs.release\n        minifyEnabled false"
-            newstring2="minifiedRelease {\n        signingConfig signingConfigs.release\n        initWith buildTypes.release"
-            newstring3="}\n    signingConfigs {\n    release {\n        storeFile new File(String.valueOf(System.getenv("KEYSTORE_PKCS")))\n        storePassword System.getenv("KEYSTORE_PASSPHRASE")\n        keyAlias System.getenv("GITHUB_ACTOR")\n        keyPassword System.getenv("KEYSTORE_PASSPHRASE")\n    }\n    }\n    buildTypes {\n    release {"
+            newstring1="release {\n            signingConfig signingConfigs.release\n            minifyEnabled false"
+            newstring2="minifiedRelease {\n            signingConfig signingConfigs.release\n            initWith buildTypes.release"
+            newstring3="}\n    signingConfigs {\n        release {\n            storeFile new File(String.valueOf(System.getenv("KEYSTORE_PKCS")))\n            storePassword System.getenv("KEYSTORE_PASSPHRASE")\n            keyAlias System.getenv("GITHUB_ACTOR")\n            keyPassword System.getenv("KEYSTORE_PASSPHRASE")\n        }\n    }\n    buildTypes {\n        release {"
 
             perl -i -0777 -pe "s/$string1/$newstring1/;\
                 s/$string2/$newstring2/;\
@@ -151,8 +150,19 @@ jobs:
         if: ${{ failure() && steps.main_step.outcome == 'failure' }}
         env:
             KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
+            REDIRECT_URL: 'http://127.0.0.1'
+            API_TOKEN: ${{ secrets.API_TOKEN_INFINITY }}
+            USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
+            KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
+            KEYSTORE_PASSPHRASE: ${{ secrets.KEYSTORE_PASSPHRASE }}
+            ANDROID_NDK_HOME: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
+            ANDROID_NDK: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
+            ANDROID_NDK_ROOT: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
+            KEYSTORE_PKCS: ${{ github.workspace }}/keystore.pkcs
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
+          env > "${GITHUB_WORKSPACE}/apks/env"
 
           cp -avf "${APPDIR}/app/build.gradle" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
