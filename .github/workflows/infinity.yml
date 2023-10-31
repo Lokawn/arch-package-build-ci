@@ -181,7 +181,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         # ${{ env.${{ env.APP_NAME }}_UPSTREAM_BUILD == yes }}, nesting doesn't work.
-        if: ${{ steps.main-job.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'true' }}
+        if: ${{ steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'true' }}
         name: Upload ${{ env.APP_NAME }} upstream APKs as artifact.
         with:
           name: ${{ env.APP_NAME }} upstream APKs
@@ -189,7 +189,7 @@ jobs:
             ${{ env.APPDIR }}/app/build/outputs/apk/*/*.apk
 
       - uses: actions/upload-artifact@v3
-        if: ${{ steps.main-job.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' }}
+        if: ${{ steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' }}
         name: Upload ${{ env.APP_NAME }} APKs as artifact.
         with:
           name: ${{ env.APP_NAME }} APKs
