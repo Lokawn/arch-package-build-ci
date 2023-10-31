@@ -155,7 +155,7 @@ jobs:
         with:
           name: ${{ env.APP_NAME }} APKs
           path: |
-            ${{ env.APP_DIR }}-apks.tar.zst.gpg
+            ${{ env.APPDIR }}-apks.tar.zst.gpg
 
 #      - name: "Upload compressed APK."
 #        if: ${{ env.APK_VARIANT_DEFAULT != 'true' }}
