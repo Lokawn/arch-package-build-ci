@@ -16,6 +16,7 @@ env:
   BLUE_COLOR: '\e[0;34m'
   BOLD_TEXT: '\e[1m'
   UNSET_COLOR: '\e[0m'
+  YAML_DEBUG true
 
 permissions:
   contents: read
@@ -76,6 +77,7 @@ jobs:
           rm -vf "${APP_NAME}.tar.gz" &> $DEBUG_OFF
 
       - name: "Build source and compress APKs."
+        if: ${{env.YAML_DEBUG == false }}
         env:
             REDIRECT_URL: 'http://127.0.0.1'
             API_TOKEN: ${{ secrets.API_TOKEN_INFINITY }}
@@ -140,7 +142,7 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         # ${{ env.${{ env.APP_NAME }}_UPSTREAM_BUILD == yes }}, nesting doesn't work.
-        if: ${{ env[format({0}_UPSTREAM_BUILD, env.APP_NAME)] }}
+        if: ${{ env[format("{0}_UPSTREAM_BUILD", env.APP_NAME)] }}
         name: Upload ${{ env.APP_NAME }} upstream APKs as artifact.
         with:
           name: ${{ env.APP_NAME }} upstream APKs
@@ -148,7 +150,7 @@ jobs:
             ${{ env.APPDIR }}/app/build/outputs/apk/*/*.apk
 
       - uses: actions/upload-artifact@v3
-        if: ${{ ! env[format({0}_UPSTREAM_BUILD, env.APP_NAME)] }}
+        if: ${{ ! env[format("{0}_UPSTREAM_BUILD", env.APP_NAME)] }}
         name: Upload ${{ env.APP_NAME }} APKs as artifact.
         with:
           name: ${{ env.APP_NAME }} APKs
