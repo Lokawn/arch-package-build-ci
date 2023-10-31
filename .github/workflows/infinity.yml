@@ -149,6 +149,8 @@ jobs:
 
       - name: "Prepare build.gradle for artifact."  
         if: ${{ failure() && steps.main_step.outcome == 'failure' }}
+        env:
+            KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
