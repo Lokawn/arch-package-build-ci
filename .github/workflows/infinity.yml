@@ -77,7 +77,7 @@ jobs:
           rm -vf "${APP_NAME}.tar.gz" &> $DEBUG_OFF
 
       - name: "Build source and compress APKs."
-        if: ${{env.YAML_DEBUG == false }}
+        if: ${{ env.YAML_DEBUG == false }}
         env:
             REDIRECT_URL: 'http://127.0.0.1'
             API_TOKEN: ${{ secrets.API_TOKEN_INFINITY }}
