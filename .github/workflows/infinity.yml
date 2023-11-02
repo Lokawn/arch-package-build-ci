@@ -80,11 +80,13 @@ jobs:
 
           printf "${ORANGE_COLOR}NOTE: Using git tag as source.${UNSET_COLOR}\n"
           
-          [[ "${VARIANT}" == release ]] && \
-          latest_tag=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/releases/latest" \
-            | grep -m1 "\"tag_name\":" | cut -d \" -f 4) || \
+          if [[ "${VARIANT}" == release ]]; then
+            latest_tag=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/releases/latest" \
+            | grep -m1 "\"tag_name\":" | cut -d \" -f 4)
+          else
             latest_tag=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/tags" \
             | grep -m1 "\"name\":" | cut -d \" -f 4)
+          fi
 
           latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
 
