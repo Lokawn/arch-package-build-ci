@@ -64,7 +64,7 @@ jobs:
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
           printf "${ORANGE_COLOR}NOTE: Using git HEAD as source.${UNSET_COLOR}\n"
-          
+
           latest_url="https://github.com/${REPO}/archive/refs/heads/master.tar.gz"
 
           wget -O "${APP_NAME}.tar.gz" "${latest_url}" &> $DEBUG_OFF && \
@@ -79,7 +79,7 @@ jobs:
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
           printf "${ORANGE_COLOR}NOTE: Using git tag as source.${UNSET_COLOR}\n"
-          
+
           if [[ "${VARIANT}" == release ]]; then
             latest_tag=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/releases/latest" \
             | grep -m1 "\"tag_name\":" | cut -d \" -f 4)
@@ -139,12 +139,12 @@ jobs:
             mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
             [[ "${RUNNER_DEBUG}" == 1 ]] && cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
-            ./gradlew assembleRelease assembleMinifiedRelease  &> $DEBUG_OFF
+            ./gradlew assembleRelease assembleMinifiedRelease &> $DEBUG_OFF
 
             for type in minifiedRelease/*.apk release/*.apk; do
               mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
-            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks.tar.zst" .  &> $DEBUG_OFF
+            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks.tar.zst" . &> $DEBUG_OFF
 
             gpg --always-trust -er "${KEY_FINGERPRINT}" \
               -o "${APPDIR}-apks.tar.zst.gpg" \
