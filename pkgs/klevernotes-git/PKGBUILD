@@ -1,0 +1,43 @@
+# Contributor: Integral <integral@murena.io>
+# Contributor: Lokawn <39772448+Lokawn@users.noreply.github.com>
+pkgname=klevernotes-git
+_pkgname=klevernotes
+pkgver=0.1_r1.ge8fa896
+pkgrel=1
+pkgdesc="A convergent markdown note taking application."
+url="https://invent.kde.org/office/klevernotes"
+arch=('x86_64')
+license=('GPL' 'LGPL' 'BSD')
+groups=('kde-applications-git' 'kde-utilities-git')
+depends=('kio5' 'qt5-webengine')
+makedepends=('extra-cmake-modules' 'git')
+#source=("git+https://invent.kde.org/office/klevernotes.git")
+#md5sums=('SKIP')
+
+prepare() {
+    if [ -d "${srcdir}/${_pkgname}" ] && cd "${srcdir}/${_pkgname}" && git pull; then
+        true
+    else
+        git clone https://invent.kde.org/office/klevernotes.git "${srcdir}/${_pkgname}" --depth=1
+    fi
+    install -d ${srcdir}/build/
+}
+
+pkgver() {
+    cd "${srcdir}/${_pkgname}"/
+    _version=$(grep -m1 "${_pkgname} VERSION" CMakeLists.txt | awk '{print $3}' | sed 's/)//')
+    echo "${_version}_r$(git rev-list --count HEAD).g$(git rev-parse --short HEAD)"
+}
+
+build() {
+    cmake -B ${srcdir}/build/ -S "${srcdir}/${_pkgname}" -DBUILD_TESTING=OFF
+    cmake --build ${srcdir}/build/
+}
+
+package() {
+    cd ${srcdir}/build/
+    DESTDIR="${pkgdir}/" cmake --install ${srcdir}/build/
+
+    # Licenses
+    install -Dm644 "${srcdir}/${_pkgname}"/LICENSES/* -t "${pkgdir}/usr/share/licenses/${pkgname}/"
+}

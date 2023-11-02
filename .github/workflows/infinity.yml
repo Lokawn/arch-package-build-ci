@@ -30,11 +30,11 @@ jobs:
         shell: bash
 
     steps:
-      - name: "Check Environment."
-        if: ${{ runner.debug == '1' }}
-        run: |
-            env
-        
+      #- name: "Check Environment."
+      #  if: ${{ runner.debug == '1' }}
+      #  run: |
+      #      env
+
       - name: "Setup for debugging workflow."
         if: ${{ runner.debug == '1' }}
         run: |
@@ -60,22 +60,31 @@ jobs:
 
       - name: "Checkout ${{ env.APP_NAME }} repository."
         if: ${{ env.VARIANT == 'git' }}
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          show-progress: false
-          repository: ${{ env.REPO }}
-          path: ${{ env.APP_NAME }}
+        run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
+          printf "${ORANGE_COLOR}NOTE: Using git HEAD as source.${UNSET_COLOR}\n"
+          
+          latest_url="https://github.com/${REPO}/archive/refs/heads/master.tar.gz"
+
+          wget -O "${APP_NAME}.tar.gz" "${latest_url}" &> $DEBUG_OFF && \
+          tar xf "${APP_NAME}.tar.gz" &> $DEBUG_OFF && \
+          mv -vf "${APP_NAME}-master" "${APP_NAME}" &> $DEBUG_OFF && \
+          rm -vf "${APP_NAME}.tar.gz" &> $DEBUG_OFF
+
+          echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
       - name: "Fetch source archive."
         if: ${{ env.VARIANT != 'git' }}
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
-          printf "${ORANGE_COLOR}NOTE: Using git archive as source.${UNSET_COLOR}\n"
-
-          latest_tag=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/releases/latest" \
-            | grep "\"tag_name\":" | cut -d \" -f 4)
+          printf "${ORANGE_COLOR}NOTE: Using git tag as source.${UNSET_COLOR}\n"
+          
+          [[ "${VARIANT}" == release ]] && \
+          latest_tag=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/releases/latest" || \
+            | grep -m1 "\"tag_name\":" | cut -d \" -f 4) \
+            latest_tag=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/tags" \
+            | grep -m1 "\"name\":" | cut -d \" -f 4)
 
           latest_url="https://github.com/${REPO}/archive/refs/tags/${latest_tag}.tar.gz"
 
@@ -126,7 +135,7 @@ jobs:
                 "${app_build_gradle_file}"
 
             mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
-            cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
+            [[ "${RUNNER_DEBUG}" == 1 ]] && cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
             ./gradlew assembleRelease assembleMinifiedRelease  &> $DEBUG_OFF
 
@@ -164,6 +173,7 @@ jobs:
           env > "${GITHUB_WORKSPACE}/apks/env"
 
           cp -avf "${APPDIR}/app/build.gradle" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
+          cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
           tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-artifacts.tar" .  &> $DEBUG_OFF
 
