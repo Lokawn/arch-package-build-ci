@@ -70,12 +70,13 @@ jobs:
           
           echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
 
-      - name: "Checkout ${{ env.APP_NAME }} repository."
-        uses: actions/checkout@v4
-        repository: ${{ env.REPO }}
-        ref: ${{ env.REPO_HEAD }}
-        persist-credentials: 'false'
-        path: ${{ env.APPDIR }}
+      - uses: actions/checkout@v4
+        name: "Checkout ${{ env.APP_NAME }} repository."
+        with:
+          repository: ${{ env.REPO }}
+          ref: ${{ env.REPO_HEAD }}
+          persist-credentials: 'false'
+          path: ${{ env.APPDIR }}
 
       - name: "Build source and compress APKs."
         id: main_step
