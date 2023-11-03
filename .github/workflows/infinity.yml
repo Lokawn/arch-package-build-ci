@@ -53,6 +53,8 @@ jobs:
           sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager --update &> $DEBUG_OFF
 
           echo "APP_NAME=${REPO#*/}" >> "$GITHUB_ENV"
+          export APP_NAME="${REPO#*/}"
+          
           echo -e "${PUBLIC_KEY}" | \
             gpg --batch --import &> $DEBUG_OFF
 
