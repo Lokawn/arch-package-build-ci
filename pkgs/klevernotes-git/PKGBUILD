@@ -2,7 +2,7 @@
 # Contributor: Lokawn <39772448+Lokawn@users.noreply.github.com>
 pkgname=klevernotes-git
 _pkgname=klevernotes
-pkgver=0.1_r1.ge8fa896
+pkgver=0.1_r1.g3af7124
 pkgrel=1
 pkgdesc="A convergent markdown note taking application."
 url="https://invent.kde.org/office/klevernotes"
@@ -30,7 +30,9 @@ pkgver() {
 }
 
 build() {
-    cmake -B ${srcdir}/build/ -S "${srcdir}/${_pkgname}" -DBUILD_TESTING=OFF
+    cmake -B ${srcdir}/build/ -S "${srcdir}/${_pkgname}"\
+        -DBUILD_TESTING=OFF\
+        -DCMAKE_BUILD_TYPE=Release
     cmake --build ${srcdir}/build/
 }
 
