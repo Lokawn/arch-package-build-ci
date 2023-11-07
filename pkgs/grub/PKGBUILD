@@ -10,12 +10,13 @@ _GRUB_EMU_BUILD="0"
 pkgname=grub
 pkgdesc='GNU GRand Unified Bootloader (2)'
 epoch=2
-#_tag='bb59f566e1e5c387dbfd342bb3767f761422c744' # git rev-parse grub-${_pkgver}
-_pkgver=2.12~rc1
+_tag='bb59f566e1e5c387dbfd342bb3767f761422c744' # git rev-parse grub-${_pkgver}
+_pkgver=2.12-rc1
 _unifont_ver='15.1.02'
-pkgver=${_pkgver/\~/}
+pkgver=${_pkgver/\-/}
 pkgrel=5
 url='https://www.gnu.org/software/grub/'
+_cgit_url='https://git.savannah.gnu.org/cgit/grub.git/'
 arch=('x86_64')
 license=('GPL-3.0-or-later')
 backup=('etc/default/grub'
@@ -49,19 +50,21 @@ validpgpkeys=('E53D497F3FA42AD8C9B4D1E835A93B74E82E4209'  # Vladimir 'phcoder' S
               'BE5C23209ACDDACEB20DB0A28C8189F1988C2166'  # Daniel Kiper <dkiper@net-space.pl>
               '95D2E9AB8740D8046387FD151A09227B1F435A33') # Paul Hardy <unifoundry@unifoundry.com>
 
-source=("https://alpha.gnu.org/gnu/grub/grub-2.12~rc1.tar.xz"{,.sig}
+source=("git+https://git.savannah.gnu.org/git/grub.git#tag=${_tag}?signed"
+        'git+https://git.savannah.gnu.org/git/gnulib.git'
         "https://ftp.gnu.org/gnu/unifont/unifont-${_unifont_ver}/unifont-${_unifont_ver}.bdf.gz"{,.sig}
         '0001-00_header-add-GRUB_COLOR_-variables.patch'
         '0002-10_linux-detect-archlinux-initramfs.patch'
         '0003-support-dropins-for-default-configuration.patch'
         '0004-ntfs-module-security.patch'
-    '0005-fix-xfs-boundary-check.patch'
+        '0005-fix-xfs-boundary-check.patch'
+        '0006-loader-framework.patch'
+        '0007-efi-use-peimage-shim.patch'
         'grub.default'
-        'sbat.csv'
-        '006-efi-use-peimage-shim.patch')
+        'sbat.csv')
 
 
-sha256sums=('7a60c08b0ff1bac630cae6293b73871a541610a7fb1a7337aeb5e96f359cd650'
+sha256sums=('SKIP'
             'SKIP'
             '912834ab9cd372f300541894615f910af4db82477c91b236674057eadfc76429'
             'SKIP'
@@ -70,9 +73,16 @@ sha256sums=('7a60c08b0ff1bac630cae6293b73871a541610a7fb1a7337aeb5e96f359cd650'
             'b5d9fcd62ffb3c3950fdeb7089ec2dc2294ac52e9861980ad90a437dedbd3d47'
             '4bdd5ceb13dbd4c41fde24163f16a0ba05447d821e74d938a0b9e5fce0431140'
             '9f8921b2bacd69bde7ab0c3aff88c678d52c2a625c89264fb92184e7427b819b'
+            'ceb0c17055f43802adf2ba45333cc5be5314e6dae9b45f927c18844a6ecfe4c0'
+            '1599ee229ce1d799aada22105dec673d1400cbed32d22b957eeeb4288e2bb644'
             '7df3f5cb5df7d2dfb17f4c9b5c5dedc9519ddce6f8d2c6cd43d1be17cecb65cb'
-            'f34c2b0aa2ed4ab9c7e7bcab5197470c30fedc6c2148f337839dd24bceae35fd'
-            '1599ee229ce1d799aada22105dec673d1400cbed32d22b957eeeb4288e2bb644')
+            'f34c2b0aa2ed4ab9c7e7bcab5197470c30fedc6c2148f337839dd24bceae35fd')
+
+_backports=(
+)
+
+_reverts=(
+)
 
 _configure_options=(
     PACKAGE_VERSION="${epoch}:${pkgver}-${pkgrel}"
@@ -98,10 +108,44 @@ _configure_options=(
 )
 
 prepare() {
-    cd "${srcdir}"
-    git clone --depth=1 https://git.savannah.gnu.org/git/gnulib.git
-    mv "${pkgname}-${_pkgver}" "${pkgname}"
-    cd "${pkgname}" || return 1
+#    if [ -d "${SRCDEST}"/gnulib.git ] && cd "${SRCDEST}"/gnulib.git && git fetch origin; then
+#        true
+#    else
+#        [ -d "${SRCDEST}"/gnulib.git ] && rm -rf "${SRCDEST}"/gnulib.git
+#        git clone https://git.savannah.gnu.org/git/gnulib.git --depth=1 --bare "${SRCDEST}"/gnulib.git
+#    fi
+
+#    [ -d "${srcdir}/gnulib" ] && rm -rf "${srcdir}/gnulib"
+
+#    git clone "${SRCDEST}/gnulib.git" "${srcdir}/gnulib" > /dev/null 2>&1
+
+#    if [ -d "${SRCDEST}/${pkgname}.git" ] && cd "${SRCDEST}/${pkgname}.git" && git fetch origin; then
+#        true
+#    else
+#        [ -d "${SRCDEST}/${pkgname}.git" ] && rm -rf "${SRCDEST}/${pkgname}.git"
+#        git clone https://git.savannah.gnu.org/git/grub.git --branch="${pkgname}-${_pkgver}" --bare "${SRCDEST}/${pkgname}.git"
+#        cd "${SRCDEST}/${pkgname}.git" && git verify-tag "${_tag}"
+#    fi
+
+#    [ -d "${srcdir}/${pkgname}" ] && rm -rf "${srcdir}/${pkgname}"
+
+#    git clone "${SRCDEST}/${pkgname}.git" "${srcdir}/${pkgname}"  > /dev/null 2>&1
+
+    cd "${srcdir}/${pkgname}"
+
+    echo "Apply backports..."
+    local _c
+    for _c in "${_backports[@]}"; do
+        git log --oneline -1 "${_c}"
+        git cherry-pick -n "${_c}"
+    done
+
+    echo "Apply reverts..."
+    local _c
+    for _c in "${_reverts[@]}"; do
+        git log --oneline -1 "${_c}"
+        git revert -n "${_c}"
+    done
 
     echo "Patch to enable GRUB_COLOR_* variables in grub-mkconfig..."
     ## Based on http://lists.gnu.org/archive/html/grub-devel/2012-02/msg00021.html
@@ -122,8 +166,11 @@ prepare() {
     echo "Patch to fix ntfs module security vulnerabilities"
     patch -Np1 -i "${srcdir}/0004-ntfs-module-security.patch"
 
+    echo "Patch from debian for loader framework"
+    patch -Np1 -i "${srcdir}/0006-loader-framework.patch"
+
     echo "Patch from debian for peimage module"
-    patch -Np1 -i "${srcdir}/006-efi-use-peimage-shim.patch"
+    patch -Np1 -i "${srcdir}/0007-efi-use-peimage-shim.patch"
 
     echo "Fix DejaVuSans.ttf location so that grub-mkfont can create *.pf2 files for starfield theme..."
     sed 's|/usr/share/fonts/dejavu|/usr/share/fonts/dejavu /usr/share/fonts/TTF|g' -i "configure.ac"
@@ -138,10 +185,10 @@ prepare() {
     # http://savannah.gnu.org/bugs/?40330 and https://bugs.archlinux.org/task/37847
     gzip -cd "${srcdir}/unifont-${_unifont_ver}.bdf.gz" > "unifont.bdf"
 
-#    echo "Run bootstrap..."
-#    ./bootstrap \
-#        --gnulib-srcdir="${srcdir}/gnulib/" \
-#        --no-git
+    echo "Run bootstrap..."
+    ./bootstrap \
+        --gnulib-srcdir="${srcdir}/gnulib/" \
+        --no-git
 }
 
 #_build_grub-common_and_bios() {
