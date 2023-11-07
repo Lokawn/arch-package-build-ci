@@ -106,11 +106,11 @@ _configure_options=(
 )
 
 prepare() {
-    if [ -d "${SRCDEST}/${pkgname}.git" ] && cd "${SRCDEST}/${pkgname}.git" && git fetch origin "${pkgname}-${_pkgver}" ; then
+    if [ -d "${SRCDEST}/${pkgname}.git" ] && cd "${SRCDEST}/${pkgname}.git" && git fetch origin "${pkgname}-${_pkgver}"; then
         true
     else
         [ -d "${SRCDEST}/${pkgname}.git" ] && rm -rf "${SRCDEST}/${pkgname}.git"
-        git clone https://git.savannah.gnu.org/git/grub.git --branch="${pkgname}-${_pkgver}" --bare "${SRCDEST}/${pkgname}.git"
+        git clone https://git.savannah.gnu.org/git/grub.git --depth=1 --branch="${pkgname}-${_pkgver}" --bare "${SRCDEST}/${pkgname}.git"
         cd "${SRCDEST}/${pkgname}.git" && git verify-tag "${_tag}"
     fi
 
@@ -120,16 +120,22 @@ prepare() {
 
     GNULIB_REVISION=$(grep -m1 GNULIB_REVISION "${srcdir}/${pkgname}/bootstrap.conf" | cut -d "=" -f2)
 
-    if [ -d "${SRCDEST}"/gnulib.git ] && cd "${SRCDEST}"/gnulib.git && git fetch origin "${GNULIB_REVISION}" && git tag "${GNULIB_REVISION}"; then
+    if [ -d "${SRCDEST}"/gnulib.git ] &&\
+        cd "${SRCDEST}"/gnulib.git &&\
+          git fetch origin "${GNULIB_REVISION}" &&\
+          git tag "GNULIB_REVISION" "${GNULIB_REVISION}"; then
         true
     else
-        [ -d "${SRCDEST}"/gnulib.git ] && rm -rf "${SRCDEST}"/gnulib.git
-        git clone https://git.savannah.gnu.org/git/gnulib.git --depth=1 --bare "${SRCDEST}"/gnulib.git && cd "${SRCDEST}"/gnulib.git && git fetch origin "${GNULIB_REVISION}" && git tag "${GNULIB_REVISION}"
+        rm -rf "${SRCDEST}"/gnulib.git
+        git clone https://git.savannah.gnu.org/git/gnulib.git --depth=1 --bare "${SRCDEST}"/gnulib.git
+        cd "${SRCDEST}"/gnulib.git
+        git fetch origin "${GNULIB_REVISION}"
+        git tag "GNULIB_REVISION" "${GNULIB_REVISION}"
     fi
 
     [ -d "${srcdir}/gnulib" ] && rm -rf "${srcdir}/gnulib"
 
-    git clone "${SRCDEST}/gnulib.git" "${srcdir}/gnulib" --branch="${GNULIB_REVISION}" > /dev/null 2>&1
+    git clone "${SRCDEST}/gnulib.git" "${srcdir}/gnulib" --branch="GNULIB_REVISION" > /dev/null 2>&1
 
     cd "${srcdir}/${pkgname}"
 
