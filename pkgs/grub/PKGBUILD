@@ -56,8 +56,9 @@ source=("https://ftp.gnu.org/gnu/unifont/unifont-${_unifont_ver}/unifont-${_unif
         '0003-support-dropins-for-default-configuration.patch'
         '0004-ntfs-module-security.patch'
         '0005-fix-xfs-boundary-check.patch'
-        '0006-loader-framework.patch'
-        '0007-efi-use-peimage-shim.patch'
+        '0006-revert-efi-fallback-to-legacy.patch'
+        '0007-loader-framework.patch'
+        '0008-efi-use-peimage-shim.patch'
         'grub.default'
         'sbat.csv')
 #"git+https://git.savannah.gnu.org/git/grub.git#tag=${_tag}?signed"
@@ -71,6 +72,7 @@ sha256sums=('912834ab9cd372f300541894615f910af4db82477c91b236674057eadfc76429'
             'b5d9fcd62ffb3c3950fdeb7089ec2dc2294ac52e9861980ad90a437dedbd3d47'
             '4bdd5ceb13dbd4c41fde24163f16a0ba05447d821e74d938a0b9e5fce0431140'
             '9f8921b2bacd69bde7ab0c3aff88c678d52c2a625c89264fb92184e7427b819b'
+            '64b054e9ad997cd844262b2b98c6a963e1c25b7d9004508b2ce06d1b3fbc8a4c'
             'a5a343e0e80c115b6e76056391647136bbdd71417dad3837cf5214479905fc00'
             'f9f084d94d859fb46cdd19ed81d0b6ae3d26152c5bf8b120259e0f4297aeb9b8'
             '7df3f5cb5df7d2dfb17f4c9b5c5dedc9519ddce6f8d2c6cd43d1be17cecb65cb'
@@ -172,11 +174,14 @@ prepare() {
     echo "Patch to fix ntfs module security vulnerabilities"
     patch -Np1 -i "${srcdir}/0004-ntfs-module-security.patch"
 
+    echo "Patch from debian for efi"
+    patch -Np1 -i "${srcdir}/0006-revert-efi-fallback-to-legacy.patch"
+
     echo "Patch from debian for loader framework"
-    patch -Np1 -i "${srcdir}/0006-loader-framework.patch"
+    patch -Np1 -i "${srcdir}/0007-loader-framework.patch"
 
     echo "Patch from debian for peimage module"
-    patch -Np1 -i "${srcdir}/0007-efi-use-peimage-shim.patch"
+    patch -Np1 -i "${srcdir}/0008-efi-use-peimage-shim.patch"
 
     echo "Fix DejaVuSans.ttf location so that grub-mkfont can create *.pf2 files for starfield theme..."
     sed 's|/usr/share/fonts/dejavu|/usr/share/fonts/dejavu /usr/share/fonts/TTF|g' -i "configure.ac"
