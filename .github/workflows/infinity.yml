@@ -122,8 +122,12 @@ jobs:
             mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
             [[ "${RUNNER_DEBUG}" == 1 ]] && cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
-            ./gradlew assembleRelease assembleMinifiedRelease \
-                |& tee "${GITHUB_WORKSPACE}/apks/build_${APP_NAME}.log" &> $DEBUG_OFF
+            if [[ "${RUNNER_DEBUG}" == 1 ]]; then
+                ./gradlew assembleRelease assembleMinifiedRelease \
+                    |& tee "${GITHUB_WORKSPACE}/apks/build_${APP_NAME}.log" &> $DEBUG_OFF
+            else
+                ./gradlew assembleRelease assembleMinifiedRelease &> $DEBUG_OFF
+            fi
 
             for type in minifiedRelease/*.apk release/*.apk; do
               mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
@@ -174,7 +178,7 @@ jobs:
         with:
           name: ${{ env.APP_NAME }} artifacts
           path: |
-            ${{ env.APPDIR }}-artifacts_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gpg
+            ${{ env.APPDIR }}-artifacts_${{ github.run_number }}.${{ github.run_attempt }}.tar.gpg
 
       - uses: actions/upload-artifact@v3
         # ${{ env.${{ env.APP_NAME }}_UPSTREAM_BUILD == yes }}, nesting doesn't work.
@@ -191,7 +195,7 @@ jobs:
 #        with:
 #          name: ${{ env.APP_NAME }} APKs
 #          path: |
-#            ${{ env.APPDIR }}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg
+#            ${{ env.APPDIR }}-apks_${{ github.run_number }}.${{ github.run_attempt }.tar.zst.gpg
 
       - name: "Upload compressed APK."
         if: ${{ steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' }}
@@ -203,6 +207,8 @@ jobs:
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
+          [[ -f "/home/runner/.ssh/known_hosts" ]] && rm "/home/runner/.ssh/known_hosts" && return 1 || touch "/home/runner/.ssh/known_hosts"
+          
           echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF || \
               ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
                   && exit 1 )
@@ -234,4 +240,4 @@ jobs:
         with:
           name: ${{ env.APP_NAME }} APKs
           path: |
-            ${{ env.APPDIR }}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg
+            ${{ env.APPDIR }}-apks_${{ github.run_number }}.${{ github.run_attempt }.tar.zst.gpg
