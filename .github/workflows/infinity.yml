@@ -218,7 +218,8 @@ jobs:
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Corrected permissions of '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}" || \
               ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to set correct permissions of '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
                   && exit 1 )
-          fi
+
+          [[ -f "/home/runner/.ssh/id_ed25519" ]] && rm "/home/runner/.ssh/id_ed25519" && return 1 || touch "/home/runner/.ssh/known_hosts"
 
           echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF || \
               ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to write ssh private key' - aborting.${UNSET_COLOR}" \
