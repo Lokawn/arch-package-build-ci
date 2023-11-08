@@ -122,16 +122,17 @@ jobs:
             mkdir -vp "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
             [[ "${RUNNER_DEBUG}" == 1 ]] && cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
-            ./gradlew assembleRelease assembleMinifiedRelease &> $DEBUG_OFF
+            ./gradlew assembleRelease assembleMinifiedRelease \
+                |& tee "${GITHUB_WORKSPACE}/apks/build_${APP_NAME}.log" &> $DEBUG_OFF
 
             for type in minifiedRelease/*.apk release/*.apk; do
               mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
-            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks.tar.zst" . &> $DEBUG_OFF
+            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst" . &> $DEBUG_OFF
 
             gpg --always-trust -er "${KEY_FINGERPRINT}" \
-              -o "${APPDIR}-apks.tar.zst.gpg" \
-                "${APPDIR}-apks.tar.zst" &> $DEBUG_OFF
+              -o "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg" \
+                "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst" &> $DEBUG_OFF
 
             echo "${APP_NAME}_UPSTREAM_BUILD=false" >> "$GITHUB_ENV"
           else
@@ -140,7 +141,7 @@ jobs:
             echo "${APP_NAME}_UPSTREAM_BUILD=true" >> "$GITHUB_ENV"
           fi
 
-      - name: "Prepare build.gradle for artifact."  
+      - name: "Upload build.gradle to artifact."  
         if: ${{ failure() && steps.main_step.outcome == 'failure' }}
         env:
             KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
@@ -160,11 +161,12 @@ jobs:
           cp -avf "${APPDIR}/app/build.gradle" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
           cp -vaf "${apiutils_file}" "${GITHUB_WORKSPACE}/apks" &> $DEBUG_OFF
 
-          tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-artifacts.tar" .  &> $DEBUG_OFF
+          tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-artifacts_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar" .  &> $DEBUG_OFF
 
           gpg --always-trust -er "${KEY_FINGERPRINT}" \
-              -o "${APPDIR}-artifacts.tar.gpg" \
-                "${APPDIR}-artifacts.tar" &> $DEBUG_OFF
+              -o "${APPDIR}-artifacts_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gpg" \
+                "${APPDIR}-artifacts_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar"
+                mv "${APPDIR}-artifacts_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar" &> $DEBUG_OFF
 
       - uses: actions/upload-artifact@v3
         if: ${{ failure() && steps.main_step.outcome == 'failure' }}
@@ -172,7 +174,7 @@ jobs:
         with:
           name: ${{ env.APP_NAME }} artifacts
           path: |
-            ${{ env.APPDIR }}-artifacts.tar.gpg
+            ${{ env.APPDIR }}-artifacts_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gpg
 
       - uses: actions/upload-artifact@v3
         # ${{ env.${{ env.APP_NAME }}_UPSTREAM_BUILD == yes }}, nesting doesn't work.
@@ -183,52 +185,53 @@ jobs:
           path: |
             ${{ env.APPDIR }}/app/build/outputs/apk/*/*.apk
 
-      - uses: actions/upload-artifact@v3
+#      - uses: actions/upload-artifact@v3
+#        if: ${{ steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' }}
+#        name: Upload ${{ env.APP_NAME }} APKs as artifact.
+#        with:
+#          name: ${{ env.APP_NAME }} APKs
+#          path: |
+#            ${{ env.APPDIR }}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg
+
+      - name: "Upload compressed APK."
         if: ${{ steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' }}
-        name: Upload ${{ env.APP_NAME }} APKs as artifact.
+        id: rsync
+        env:
+          SSHKEY: ${{ secrets.SSHKEY }}
+          REMOTE: ${{ secrets.REMOTE }}
+          HOST: ${{ secrets.HOST }}
+        run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
+          echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF || \
+              ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
+                  && exit 1 )
+          echo -e "${BLUE_COLOR}${BOLD_TEXT}REMOTE appended to '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}"
+
+          chmod -v 0600 "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF && \
+            echo -e "${BLUE_COLOR}${BOLD_TEXT}Corrected permissions of '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}" || \
+              ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to set correct permissions of '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
+                  && exit 1 )
+          fi
+
+          echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF || \
+              ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to write ssh private key' - aborting.${UNSET_COLOR}" \
+                  && exit 1 )
+
+          chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF          
+          REMOTE="${REMOTE/x86_64/android/}"
+
+          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg" "$REMOTE" &> $DEBUG_OFF; then
+            echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
+          else
+            echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
+            return 1
+          fi || (exit 1)
+
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() && steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' && steps.rsync.outcome == 'failure' }}
+        name: Upload ${{ env.APP_NAME }} APKs as artifact as rsync failed.
         with:
           name: ${{ env.APP_NAME }} APKs
           path: |
-            ${{ env.APPDIR }}-apks.tar.zst.gpg
-
-#      - name: "Upload compressed APK."
-#        if: ${{ env.APK_VARIANT_DEFAULT != 'true' }}
-#        env:
-#          SSHKEY: ${{ secrets.SSHKEY }}
-#          REMOTE: ${{ secrets.REMOTE_ANDROID }}
-#          HOST: ${{ secrets.HOST }}
-#        run: |
-#          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
-
-#          if ! grep -Fxq "$HOST" "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF; then
-#            if ! echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF; then
-#              echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}"
-#              exit 1
-#            fi
-#            echo -e "${BLUE_COLOR}${BOLD_TEXT}REMOTE appended to '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}"
-
-#            chmod -v 0600 "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF && \
-#              echo -e "${BLUE_COLOR}${BOLD_TEXT}Corrected permissions of '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}" || \
-#                (echo -e "${RED_COLOR}${BOLD_TEXT}Failed to set correct permissions of '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
-#                  && exit 1 )
-#          fi
-
-#          if [[ -f "/home/runner/.ssh/id_ed25519" ]]; then
-#            echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519.bak" &> $DEBUG_OFF
-#            if ! diff "/home/runner/.ssh/id_ed25519" "/home/runner/.ssh/id_ed25519.bak" &> $DEBUG_OFF; then
-#              mv -v "/home/runner/.ssh/id_ed25519.bak" "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
-#              echo -e "${BLUE_COLOR}${BOLD_TEXT}Private SSH Key created - proceeding.{UNSET_COLOR}"
-#            fi
-#          else
-#            echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
-#            echo -e "${BLUE_COLOR}${BOLD_TEXT}Private SSH Key created - proceeding.{UNSET_COLOR}"
-#          fi
-
-#          chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
-
-#          if rsync -a --delete -e "ssh -v -i /home/runner/.ssh/id_ed25519" "$GITHUB_WORKSPACE/repo/" "$REMOTE" &> $DEBUG_OFF; then
-#            echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
-#          else
-#            echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
-#            return 1
-#          fi || (exit 1)
+            ${{ env.APPDIR }}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg
