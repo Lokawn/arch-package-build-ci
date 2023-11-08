@@ -54,12 +54,12 @@ jobs:
 
           echo "APP_NAME=${REPO#*/}" >> "$GITHUB_ENV"
           export APP_NAME="${REPO#*/}"
-          
+
           echo -e "${PUBLIC_KEY}" | \
             gpg --batch --import &> $DEBUG_OFF
 
           echo -e "${KEYSTORE_TEXT}" | base64 -d > "${GITHUB_WORKSPACE}/keystore.pkcs"
-          
+
           if [[ "${VARIANT}" == git ]]; then
             echo "REPO_HEAD=master" >> "$GITHUB_ENV"
           elif [[ "${VARIANT}" == release ]]; then
@@ -69,7 +69,7 @@ jobs:
             echo "REPO_HEAD=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/tags" \
             | grep -m1 "\"name\":" | cut -d \" -f 4)" >> "$GITHUB_ENV"
           fi
-          
+
           echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
@@ -207,8 +207,8 @@ jobs:
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
-          [[ -f "/home/runner/.ssh/known_hosts" ]] && rm "/home/runner/.ssh/known_hosts" && return 1 || touch "/home/runner/.ssh/known_hosts"
-          
+          [[ -f "/home/runner/.ssh/known_hosts" ]] && rm "/home/runner/.ssh/known_hosts" && return 1 || ( mkdir -p "/home/runner/.ssh" && touch "/home/runner/.ssh/known_hosts" )
+
           echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF || \
               ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
                   && exit 1 )
