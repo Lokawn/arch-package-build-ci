@@ -24,9 +24,9 @@ backup=('etc/default/grub'
 install="${pkgname}.install"
 options=('!makeflags')
 
-conflicts=('grub-common' 'grub-bios' 'grub-emu' "grub-efi-${_EFI_ARCH}" 'grub-legacy')
-replaces=('grub-common' 'grub-bios' 'grub-emu' "grub-efi-${_EFI_ARCH}")
-provides=('grub-common' 'grub-bios' 'grub-emu' "grub-efi-${_EFI_ARCH}")
+conflicts=('grub-common' 'grub-bios' 'grub-emu' "grub-efi-${_EFI_ARCH}" 'grub-legacy' 'grub-git')
+replaces=('grub-common' 'grub-bios' 'grub-emu' "grub-efi-${_EFI_ARCH}" 'grub-git')
+provides=('grub-common' 'grub-bios' 'grub-emu' "grub-efi-${_EFI_ARCH}" 'grub-git')
 
 makedepends=('git' 'rsync' 'xz' 'freetype2' 'ttf-dejavu' 'python' 'autogen'
              'texinfo' 'help2man' 'gettext' 'device-mapper' 'fuse3' 'automake')
