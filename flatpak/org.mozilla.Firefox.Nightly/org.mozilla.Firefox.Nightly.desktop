@@ -1,0 +1,30 @@
+[Desktop Entry]
+Actions=new-window;new-private-window;profilemanager;
+Categories=Network;WebBrowser;
+Comment[en_IN]=Browse the Web
+Comment=Browse the Web
+Exec=/app/bin/firefox-nightly %u
+GenericName[en_IN]=Web Browser
+GenericName=Web Browser
+Icon=org.mozilla.Firefox.Nightly
+Keywords=Internet;WWW;Browser;Web;Explorer;
+MimeType=text/html;application/xml;application/xhtml+xml;application/x-xpinstall;application/vnd.mozilla.xul+xml;application/pdf;application/json;
+Name[en_IN]=Firefox Nightly
+Name=Firefox Nightly
+StartupNotify=true
+StartupWMClass=firefox-nightly
+Terminal=false
+Type=Application
+X-KDE-SubstituteUID=false
+
+[Desktop Action new-window]
+Exec=/app/bin/firefox-nightly --new-window %u
+Name=New Window
+
+[Desktop Action new-private-window]
+Exec=/app/bin/firefox-nightly --private-window %u
+Name=New Private Window
+
+[Desktop Action profilemanager]
+Exec=/app/bin/firefox-nightly --ProfileManager %u
+Name=Open the Profile Manager

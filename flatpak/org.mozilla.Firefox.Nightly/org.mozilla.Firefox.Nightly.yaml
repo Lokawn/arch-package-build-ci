@@ -1,0 +1,72 @@
+app-id: "org.mozilla.Firefox.Nightly"
+runtime: "org.freedesktop.Platform"
+runtime-version: "23.08"
+sdk: "org.freedesktop.Sdk"
+separate-locales: false
+build-options:
+  no-debuginfo: true
+  strip: false
+add-extensions:
+  org.freedesktop.Platform.ffmpeg-full:
+    directory: "lib/ffmpeg"
+    version: "23.08"
+    add-ld-path: "."
+command: "firefox-nightly"
+finish-args:
+  - "--share=ipc"
+  - "--share=network"
+  - "--socket=wayland"
+  - "--socket=fallback-x11"
+  - "--socket=pulseaudio"
+  - "--require-version=0.11.1"
+  - "--persist=.mozilla"
+  - "--filesystem=xdg-download:rw"
+  - "--filesystem=/run/.heim_org.h5l.kcm-socket"
+  - "--filesystem=xdg-config/gtk-3.0/:ro"
+  - "--talk-name=org.freedesktop.FileManager1"
+  - "--system-talk-name=org.freedesktop.NetworkManager"
+  - "--talk-name=org.a11y.Bus"
+  - "--talk-name=org.gnome.SessionManager"
+  - "--talk-name=org.freedesktop.ScreenSaver"
+  - "--talk-name=org.gtk.vfs.*"
+  - "--talk-name=org.freedesktop.Notifications"
+  - "--talk-name=org.gnome.Mutter.IdleMonitor.*"
+  - "--env=GTK_PATH=/app/lib/gtkmodules"
+  - "--env=MOZ_ENABLE_WAYLAND=1"
+  - "--own-name=org.mozilla.firefox_nightly.*"
+  - "--own-name=org.mpris.MediaPlayer2.firefox.*"
+
+modules:
+  - name: "Package_firefox-nightly"
+    buildsystem: "simple"
+    build-commands:
+      - "find ./BaseApp/ -mindepth 1 -prune -exec mv -f -t /app '{}' ';'"
+      - "mv -fT firefox /app/lib/firefox-nightly"
+      - "for icon in 16 32 48 64 128; do install -D -m644 /app/lib/firefox-nightly/browser/chrome/icons/default/default${icon}.png /app/share/icons/hicolor/${icon}x${icon}/apps/org.mozilla.Firefox.Nightly.png; done"
+      - "install -D -m644 org.mozilla.Firefox.Nightly.desktop -t /app/share/applications"
+      - "install -D -m644 org.mozilla.Firefox.Nightly.appdata.xml -t /app/share/metainfo"
+      - "install -D -m755 firefox-nightly.sh /app/bin/firefox-nightly"
+      - "install -d /app/lib/ffmpeg"
+    sources:
+      - type: "dir"
+        path: "BaseApp"
+        dest: "BaseApp"
+      - type: "archive"
+        sha256: "Xbinary_sha256X"
+        path: "firefox-XversionX.en-US.linux-x86_64.tar.bz2"
+        archive-type: "tar-bzip2"
+        strip-components: 0
+        only-arches:
+          - "x86_64"
+      - type: "file"
+        path: "org.mozilla.Firefox.Nightly.desktop"
+        sha256: "041dc5529df942358ee678c8befcbc57d19af39a343193db4c5ecc5cb2723d90"
+      - type: "file"
+        path: "org.mozilla.Firefox.Nightly.appdata.xml"
+        sha256: "Xappdata_sha256X"
+      - type: "script"
+        dest-filename: "firefox-nightly.sh"
+        commands:
+          - #!/bin/bash
+          - export TMPDIR=$XDG_CACHE_HOME/tmp
+          - exec /app/lib/firefox-nightly/firefox-bin "$@"

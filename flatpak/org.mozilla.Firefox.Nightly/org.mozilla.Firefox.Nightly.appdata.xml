@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.mozilla.Firefox.Nightly</id>
+  <launchable type="desktop-id">org.mozilla.Firefox.Nightly.desktop</launchable>
+  <name>Firefox Nightly</name>
+  <developer_name>Mozilla</developer_name>
+  <summary>Fast, Private &amp; Safe Web Browser</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MPL-2.0</project_license>
+  <description>
+    <p>Firefox Nightly is the earliest development stage of Firefox, rebuilt every night from the latest code produced by Mozilla. It is literally a glimpse of what the Future of Firefox will be.</p>
+  </description>
+  <releases>
+	<release version="XversionX" date="XdateX"/>
+  </releases>
+  <keywords>
+    <keyword>mozilla</keyword>
+    <keyword>internet</keyword>
+    <keyword>web</keyword>
+  </keywords>
+  <content_rating type="oars-1.1" />
+  <url type="homepage">https://www.mozilla.org/firefox/</url>
+  <url type="donation">https://donate.mozilla.org/</url>
+  <url type="bugtracker">https://bugzilla.mozilla.org/</url>
+  <url type="help">https://support.mozilla.org/</url>
+  <url type="translate">https://wiki.mozilla.org/L10n:Starting_a_localization</url>
+</component>
