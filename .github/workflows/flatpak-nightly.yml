@@ -53,7 +53,7 @@ jobs:
             org.mozilla.firefox.BaseApp/x86_64/23.08 &> $DEBUG_OFF
 
           cd "${GITHUB_WORKSPACE}/flatpak/${APP}" || \
-            ls -lAR "${GITHUB_WORKSPACE}/ 
+            ls -lAR "${GITHUB_WORKSPACE}/"
           ln -s -T ~/.local/share/flatpak/app/org.mozilla.firefox.BaseApp/current/active/files BaseApp &> $DEBUG_OFF
 
       - name: "Get latest binary."
