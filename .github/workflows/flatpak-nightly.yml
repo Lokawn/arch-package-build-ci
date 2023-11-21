@@ -93,13 +93,13 @@ jobs:
             ( echo -e "${RED_COLOR}${BOLD_TEXT}Firefox binary not verified - aborting." && exit 1 )
 
           sed -i "s/XversionX/${version}/;s/XdateX/${build_date}/" \
-            ${APP}.appdata.xml &> $DEBUG_OFF
+            "${APP}.appdata.xml" &> $DEBUG_OFF
 
-          sed -i 
+          sed -i \
            -e "s/Xbinary_sha256X/$(sha256sum ${filename} | awk '{ printf $1 }')/" \
            -e "s/XversionX/${firefox_pipeline}/" \
            -e "s/Xappdata_sha256X/$(sha256sum ${APP}.appdata.xml | awk '{ printf $1 }')/" \
-            ${APP}.yaml &> $DEBUG_OFF
+           "${APP}.yaml" &> $DEBUG_OFF
 
       - name: "Compile Firefox Nightly flatpak bundle."
         run: |
