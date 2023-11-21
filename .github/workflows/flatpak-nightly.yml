@@ -58,14 +58,14 @@ jobs:
             org.freedesktop.Sdk/x86_64/23.08 \
             org.mozilla.firefox.BaseApp/x86_64/23.08 &> $DEBUG_OFF
 
-          cd "${GITHUB_WORKSPACE}/flatpak/${APP}" || \
-            ls -lAR "${GITHUB_WORKSPACE}/"
+          cd "${GITHUB_WORKSPACE}/flatpak/${APP}"
+
           ln -s -T ~/.local/share/flatpak/app/org.mozilla.firefox.BaseApp/current/active/files BaseApp &> $DEBUG_OFF
 
       - name: "Get latest binary."
         run: |
           ftp_server="https://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/"
-          
+
           firefox_pipeline=$(curl ${ftp_server} | \
             grep "en-US.linux-x86_64.checksums" | \
               sed 's/^.*>firefox-//;s/\.en-US.*//' | sort -n | tail -n 1)
@@ -90,7 +90,7 @@ jobs:
           gpg --import KEY.gpg &> $DEBUG_OFF
 
           gpg --verify ${filename}.asc ${filename} &> $DEBUG_OFF || \
-            ( echo -e "${RED_COLOR}${BOLD_TEXT}Firefox binary not verified - aborting && exit 1 )
+            ( echo -e "${RED_COLOR}${BOLD_TEXT}Firefox binary not verified - aborting." && exit 1 )
 
           sed -i "s/XversionX/${version}/;s/XdateX/${build_date}/" \
             ${APP}.appdata.xml &> $DEBUG_OFF
