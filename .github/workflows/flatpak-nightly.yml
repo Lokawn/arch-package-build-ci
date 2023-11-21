@@ -32,6 +32,12 @@ jobs:
           set -x
           echo -e "set -x\nexport DEBUG_OFF='/dev/stdout'" > ${GITHUB_WORKSPACE}/debug.sh
 
+      - uses: actions/checkout@v4
+        name: Checkout Repository to Github workspace with single commit.
+        with:
+          persist-credentials: false
+          show-progress: false
+
       - name: "Set-up PATH and update build tools."
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
