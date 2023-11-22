@@ -11,17 +11,8 @@ license=('GPL' 'LGPL' 'BSD')
 groups=('kde-applications-git' 'kde-utilities-git')
 depends=('kio5' 'qt5-webengine')
 makedepends=('extra-cmake-modules' 'git' 'qt5-quickcontrols2' 'kirigami2')
-#source=("git+https://invent.kde.org/office/klevernotes.git")
-#md5sums=('SKIP')
-
-prepare() {
-    if [ -d "${srcdir}/${_pkgname}" ] && cd "${srcdir}/${_pkgname}" && git pull; then
-        true
-    else
-        git clone https://invent.kde.org/office/klevernotes.git "${srcdir}/${_pkgname}" --depth=1
-    fi
-    install -d ${srcdir}/build/
-}
+source=("git+https://invent.kde.org/office/klevernotes.git")
+md5sums=('SKIP')
 
 pkgver() {
     cd "${srcdir}/${_pkgname}"/
