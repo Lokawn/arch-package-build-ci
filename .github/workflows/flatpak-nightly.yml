@@ -131,7 +131,7 @@ jobs:
           mkdir -vp "${GITHUB_WORKSPACE}/${APP}-${version}" &> $DEBUG_OFF
           mv -t "${GITHUB_WORKSPACE}/${APP}-${version}/" \
             "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" \
-            "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak.gpg"
+            "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak.sig"
 
       - name: "Upload Flatpak."
         env:
