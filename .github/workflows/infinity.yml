@@ -227,7 +227,7 @@ jobs:
 
           chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF          
 
-          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg" "${REMOTE}/x86_64/android/" &> $DEBUG_OFF; then
+          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg" "${REMOTE}/android/" &> $DEBUG_OFF; then
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
           else
             echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
