@@ -29,17 +29,17 @@ jobs:
         shell: bash
 
     steps:
-      - name: "Setup for debugging workflow."
-        if: ${{ runner.debug == '1' }}
-        run: |
-          set -x
-          echo -e "set -x\nexport DEBUG_OFF='/dev/stdout'" > ${GITHUB_WORKSPACE}/debug.sh
-
       - uses: actions/checkout@v4
         name: Checkout Repository to Github workspace with single commit.
         with:
           persist-credentials: false
           show-progress: false
+
+      - name: "Setup for debugging workflow."
+        if: ${{ runner.debug == '1' }}
+        run: |
+          set -x
+          echo -e "set -x\nexport DEBUG_OFF='/dev/stdout'" > ${GITHUB_WORKSPACE}/debug.sh
 
       - name: "Set-up PATH and update build tools."
         run: |
@@ -67,6 +67,8 @@ jobs:
 
       - name: "Get latest binary."
         run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
           ftp_server="https://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/"
 
           firefox_pipeline=$(curl ${ftp_server} | \
@@ -135,6 +137,7 @@ jobs:
           mv -t "${GITHUB_WORKSPACE}/${APP}-${version}/" \
             "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" \
             "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak.sig"
+          echo "${version}" > "${GITHUB_WORKSPACE}/${APP}-${version}/VERSION"
 
       - name: "Upload Flatpak."
         env:
