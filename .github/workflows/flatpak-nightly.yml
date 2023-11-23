@@ -137,6 +137,7 @@ jobs:
           mv -t "${GITHUB_WORKSPACE}/${APP}-${version}/" \
             "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" \
             "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak.sig"
+          echo "${version}" > "${GITHUB_WORKSPACE}/${APP}-${version}/VERSION"
 
       - name: "Upload Flatpak."
         env:
