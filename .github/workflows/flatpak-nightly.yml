@@ -2,6 +2,9 @@ name: "Package Firefox Nightly flatpak bundle."
 
 on:
   workflow_dispatch:
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '35 5 * * *'
 
 env:
   APP: 'org.mozilla.Firefox.Nightly'
