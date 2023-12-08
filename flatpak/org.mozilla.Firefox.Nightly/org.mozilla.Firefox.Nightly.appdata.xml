@@ -2,7 +2,7 @@
 <component type="desktop">
   <id>org.mozilla.Firefox.Nightly</id>
   <launchable type="desktop-id">org.mozilla.Firefox.Nightly.desktop</launchable>
-  <name>Firefox Nightly</name>
+  <name>Firefox Nightly with opinionated defaults</name>
   <developer_name>Mozilla</developer_name>
   <summary>Fast, Private &amp; Safe Web Browser</summary>
   <metadata_license>CC0-1.0</metadata_license>

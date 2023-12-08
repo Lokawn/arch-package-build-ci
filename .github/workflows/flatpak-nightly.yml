@@ -15,7 +15,6 @@ env:
   BLUE_COLOR: '\e[0;34m'
   BOLD_TEXT: '\e[1m'
   UNSET_COLOR: '\e[0m'
-  YAML_DEBUG: 'false'
 
 permissions:
   contents: read
@@ -100,10 +99,13 @@ jobs:
           sed -i "s/XversionX/${version}/;s/XdateX/${build_date}/" \
             "${APP}.appdata.xml" &> $DEBUG_OFF
 
+          sed -i "s/XversionX/${version}/" "distribution.ini" &> $DEBUG_OFF
+
           sed -i \
            -e "s/Xbinary_sha256X/$(sha256sum ${filename} | awk '{ printf $1 }')/" \
            -e "s/XversionX/${firefox_pipeline}/" \
            -e "s/Xappdata_sha256X/$(sha256sum ${APP}.appdata.xml | awk '{ printf $1 }')/" \
+           -e "s/Xdistrib_sha256X/$(sha256sum distribution.ini | awk '{ printf $1 }')/" \
            "${APP}.yaml" &> $DEBUG_OFF
 
       - name: "Compile Firefox Nightly flatpak bundle."
