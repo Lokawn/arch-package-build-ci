@@ -172,7 +172,7 @@ jobs:
                 "${APPDIR}-artifacts_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar"
                 mv "${APPDIR}-artifacts_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar" &> $DEBUG_OFF
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() && steps.main_step.outcome == 'failure' }}
         name: Upload ${{ env.APP_NAME }} build failure artifacts.
         with:
@@ -180,7 +180,7 @@ jobs:
           path: |
             ${{ env.APPDIR }}-artifacts_${{ github.run_number }}.${{ github.run_attempt }}.tar.gpg
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         # ${{ env.${{ env.APP_NAME }}_UPSTREAM_BUILD == yes }}, nesting doesn't work.
         if: ${{ steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'true' }}
         name: Upload ${{ env.APP_NAME }} upstream APKs as artifact.
@@ -189,7 +189,7 @@ jobs:
           path: |
             ${{ env.APPDIR }}/app/build/outputs/apk/*/*.apk
 
-#      - uses: actions/upload-artifact@v3
+#      - uses: actions/upload-artifact@v4
 #        if: ${{ steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' }}
 #        name: Upload ${{ env.APP_NAME }} APKs as artifact.
 #        with:
@@ -234,7 +234,7 @@ jobs:
             return 1
           fi || (exit 1)
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() && steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' && steps.rsync.outcome == 'failure' }}
         name: Upload ${{ env.APP_NAME }} APKs as artifact as rsync failed.
         with:
