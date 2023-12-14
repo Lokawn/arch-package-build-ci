@@ -117,13 +117,13 @@ jobs:
           PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
           KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Upload SHA512SUMS
         with:
           name: Upload SHA512SUMS
           path:
             repo/x86_64/sha512sums*
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         name: Upload Logs
         if: success() || failure()
         with:
