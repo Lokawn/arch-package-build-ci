@@ -16,7 +16,6 @@ env:
   BLUE_COLOR: '\e[0;34m'
   BOLD_TEXT: '\e[1m'
   UNSET_COLOR: '\e[0m'
-  YAML_DEBUG: 'false'
 
 permissions:
   contents: read
@@ -49,8 +48,8 @@ jobs:
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
           echo "/usr/local/lib/android/sdk/tools/bin:/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
-          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" &> $DEBUG_OFF
-          sudo -E /usr/local/lib/android/sdk/tools/bin/sdkmanager --update &> $DEBUG_OFF
+          sudo -E /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.0" &> $DEBUG_OFF
+          sudo -E /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --update &> $DEBUG_OFF
 
           echo "APP_NAME=${REPO#*/}" >> "$GITHUB_ENV"
           export APP_NAME="${REPO#*/}"
@@ -82,7 +81,6 @@ jobs:
 
       - name: "Build source and compress APKs."
         id: main_step
-        if: ${{ env.YAML_DEBUG == 'false' }}
         env:
             REDIRECT_URL: 'http://127.0.0.1'
             API_TOKEN: ${{ secrets.API_TOKEN_INFINITY }}
@@ -212,10 +210,10 @@ jobs:
           echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF || \
               ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
                   && exit 1 )
-          echo -e "${BLUE_COLOR}${BOLD_TEXT}REMOTE appended to '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}"
+          echo -e "${BLUE_COLOR}${BOLD_TEXT}REMOTE appended to '~/.ssh/known_hosts' - proceeding.${UNSET_COLOR}"
 
           chmod -v 0600 "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF && \
-            echo -e "${BLUE_COLOR}${BOLD_TEXT}Corrected permissions of '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}" || \
+            echo -e "${BLUE_COLOR}${BOLD_TEXT}Corrected permissions of '~/.ssh/known_hosts' - proceeding.${UNSET_COLOR}" || \
               ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to set correct permissions of '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
                   && exit 1 )
 
@@ -228,7 +226,7 @@ jobs:
           chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF          
 
           if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg" "${REMOTE}/android/" &> $DEBUG_OFF; then
-            echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
+            echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.${UNSET_COLOR}"
           else
             echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
             return 1
