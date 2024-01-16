@@ -130,11 +130,11 @@ jobs:
             for type in minifiedRelease/*.apk release/*.apk; do
               mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
-            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst" . &> $DEBUG_OFF
+            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz" . &> $DEBUG_OFF
 
             gpg --always-trust -er "${KEY_FINGERPRINT}" \
-              -o "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg" \
-                "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst" &> $DEBUG_OFF
+              -o "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz.gpg" \
+                "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz" &> $DEBUG_OFF
 
             echo "${APP_NAME}_UPSTREAM_BUILD=false" >> "$GITHUB_ENV"
           else
@@ -193,7 +193,7 @@ jobs:
 #        with:
 #          name: ${{ env.APP_NAME }} APKs
 #          path: |
-#            ${{ env.APPDIR }}-apks_${{ github.run_number }}.${{ github.run_attempt }.tar.zst.gpg
+#            ${{ env.APPDIR }}-apks_${{ github.run_number }}.${{ github.run_attempt }.tar.gz.gpg
 
       - name: "Upload compressed APK."
         if: ${{ steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' }}
@@ -225,7 +225,7 @@ jobs:
 
           chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF          
 
-          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.zst.gpg" "${REMOTE}/android/" &> $DEBUG_OFF; then
+          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz.gpg" "${REMOTE}/android/" &> $DEBUG_OFF; then
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.${UNSET_COLOR}"
           else
             echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
@@ -238,4 +238,4 @@ jobs:
         with:
           name: ${{ env.APP_NAME }} APKs
           path: |
-            ${{ env.APPDIR }}-apks_${{ github.run_number }}.${{ github.run_attempt }}.tar.zst.gpg
+            ${{ env.APPDIR }}-apks_${{ github.run_number }}.${{ github.run_attempt }}.tar.gz.gpg
