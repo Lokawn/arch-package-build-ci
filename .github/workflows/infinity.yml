@@ -62,11 +62,9 @@ jobs:
           if [[ "${VARIANT}" == git ]]; then
             echo "REPO_HEAD=master" >> "$GITHUB_ENV"
           elif [[ "${VARIANT}" == release ]]; then
-            echo "REPO_HEAD=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/releases/latest" \
-            | grep -m1 "\"tag_name\":" | cut -d \" -f 4)" >> "$GITHUB_ENV"
+            echo "REPO_HEAD=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/releases/latest" | jq -r '.tag_name')" >> "$GITHUB_ENV"
           else
-            echo "REPO_HEAD=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/tags" \
-            | grep -m1 "\"name\":" | cut -d \" -f 4)" >> "$GITHUB_ENV"
+            echo "REPO_HEAD=$(curl -s "${GITHUB_API_URL}/repos/${REPO}/tags" | jq '.[0] | .name')" >> "$GITHUB_ENV"
           fi
 
           echo "APPDIR=${GITHUB_WORKSPACE}/${APP_NAME}" >> "$GITHUB_ENV"
