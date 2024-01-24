@@ -126,6 +126,7 @@ jobs:
             fi
 
             export APPLICATION_VERSION=$(echo ${REPO_HEAD} | sed 's/v//g')
+            echo "APPLICATION_VERSION=${APPLICATION_VERSION}" >> $GITHUB_ENV
 
             for type in minifiedRelease/*.apk release/*.apk; do
               mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
