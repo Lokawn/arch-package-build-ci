@@ -103,7 +103,7 @@ jobs:
           x=1
           while [ $x -le 5 ]; do
             curl --connect-timeout 15 --retry 5 -o "${archive_local}" "${archive_url}" &> $DEBUG_OFF
-            sha256sum -c --ignore-missing "${archive_local}".sha256 && continue || rm -f "${archive_local}" &> $DEBUG_OFF
+            sha256sum -c --ignore-missing "${archive_local}".sha256 && break || rm -f "${archive_local}" &> $DEBUG_OFF
             x=$(( $x + 1 ))
           done
 
