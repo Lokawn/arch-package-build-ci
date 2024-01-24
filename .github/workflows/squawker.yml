@@ -122,13 +122,15 @@ jobs:
             echo "/opt/flutter/.pub-cache/bin"
           } >>"$GITHUB_PATH"
 
+          export PATH=$PATH:/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:/opt/flutter/.pub-cache/bin"
+
           # Setup Flutter SDK.
           export PUB_CACHE=/opt/flutter/.pub-cache
 
-          /opt/flutter config --no-analytics &> $DEBUG_OFF
-          /opt/flutter pub get &> $DEBUG_OFF
-          /opt/flutter pub run flutter_oss_licenses:generate.dart &> $DEBUG_OFF
-          /opt/flutter pub run intl_utils:generate &> $DEBUG_OFF
+          flutter config --no-analytics &> $DEBUG_OFF
+          flutter pub get &> $DEBUG_OFF
+          flutter pub run flutter_oss_licenses:generate.dart &> $DEBUG_OFF
+          flutter pub run intl_utils:generate &> $DEBUG_OFF
 
       - name: Set env
         run: |
