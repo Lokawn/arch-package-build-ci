@@ -122,7 +122,7 @@ jobs:
             echo "/opt/flutter/.pub-cache/bin"
           } >>"$GITHUB_PATH"
 
-          export PATH=$PATH:/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:/opt/flutter/.pub-cache/bin"
+          export PATH=$PATH:/opt/flutter/bin:/opt/flutter/bin/cache/dart-sdk/bin:/opt/flutter/.pub-cache/bin
 
           # Setup Flutter SDK.
           export PUB_CACHE=/opt/flutter/.pub-cache
