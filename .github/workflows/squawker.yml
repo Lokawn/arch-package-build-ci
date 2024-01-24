@@ -127,10 +127,7 @@ jobs:
           # Setup Flutter SDK.
           export PUB_CACHE=/opt/flutter/.pub-cache
 
-          flutter config --no-analytics &> $DEBUG_OFF
-          flutter pub get &> $DEBUG_OFF
-          flutter pub run flutter_oss_licenses:generate.dart &> $DEBUG_OFF
-          flutter pub run intl_utils:generate &> $DEBUG_OFF
+          flutter config --no-analytics --no-animations &> $DEBUG_OFF
 
       - name: Set env
         run: |
@@ -156,6 +153,9 @@ jobs:
           # Create a directory for our release APKs
           mkdir -pv "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
 
+          flutter pub get &> $DEBUG_OFF
+          flutter pub run flutter_oss_licenses:generate.dart &> $DEBUG_OFF
+          flutter pub run intl_utils:generate &> $DEBUG_OFF
           flutter build apk --dart-define=app.flavor=github --release --no-tree-shake-icons --split-per-abi --target-platform=android-arm64 --build-name=${{env.APPLICATION_VERSION}} --build-number=${{env.APPLICATION_BUILD_NUMBER}} &> $DEBUG_OFF
 
           mv -vf build/app/outputs/apk/release/*.apk "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
