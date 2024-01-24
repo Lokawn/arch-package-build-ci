@@ -125,14 +125,16 @@ jobs:
                 ./gradlew assembleRelease assembleMinifiedRelease &> $DEBUG_OFF
             fi
 
+            export APPLICATION_VERSION=$(echo ${REPO_HEAD} | sed 's/v//g')
+
             for type in minifiedRelease/*.apk release/*.apk; do
               mv -vf ${APPDIR}/app/build/outputs/apk/${type} "${GITHUB_WORKSPACE}/apks/" &> $DEBUG_OFF
             done
-            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz" . &> $DEBUG_OFF
+            tar -C "${GITHUB_WORKSPACE}/apks" -cf "${APPDIR}-apks_${APPLICATION_VERSION}-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz" . &> $DEBUG_OFF
 
             gpg --always-trust -er "${KEY_FINGERPRINT}" \
-              -o "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz.gpg" \
-                "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz" &> $DEBUG_OFF
+              -o "${APPDIR}-apks_${APPLICATION_VERSION}-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz.gpg" \
+                "${APPDIR}-apks_${APPLICATION_VERSION}-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz" &> $DEBUG_OFF
 
             echo "${APP_NAME}_UPSTREAM_BUILD=false" >> "$GITHUB_ENV"
           else
@@ -145,14 +147,6 @@ jobs:
         if: ${{ failure() && steps.main_step.outcome == 'failure' }}
         env:
             KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
-            REDIRECT_URL: 'http://127.0.0.1'
-            API_TOKEN: ${{ secrets.API_TOKEN_INFINITY }}
-            USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
-            KEYSTORE_PASSPHRASE: ${{ secrets.KEYSTORE_PASSPHRASE }}
-            ANDROID_NDK_HOME: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
-            ANDROID_NDK: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
-            ANDROID_NDK_ROOT: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
-            KEYSTORE_PKCS: ${{ github.workspace }}/keystore.pkcs
         run: |
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
@@ -223,7 +217,7 @@ jobs:
 
           chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF          
 
-          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" "${APPDIR}-apks_${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz.gpg" "${REMOTE}/android/" &> $DEBUG_OFF; then
+          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" "${APPDIR}-apks_${APPLICATION_VERSION}-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.tar.gz.gpg" "${REMOTE}/android/" &> $DEBUG_OFF; then
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.${UNSET_COLOR}"
           else
             echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
@@ -236,4 +230,4 @@ jobs:
         with:
           name: ${{ env.APP_NAME }} APKs
           path: |
-            ${{ env.APPDIR }}-apks_${{ github.run_number }}.${{ github.run_attempt }}.tar.gz.gpg
+            ${{ env.APPDIR }}-apks_${{ env.APPLICATION_VERSION }}-${{ github.run_number }}.${{ github.run_attempt }}.tar.gz.gpg
