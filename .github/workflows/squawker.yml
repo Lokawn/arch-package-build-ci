@@ -128,6 +128,7 @@ jobs:
           export PUB_CACHE=/opt/flutter/.pub-cache
 
           flutter config --no-analytics --no-animations &> $DEBUG_OFF
+          flutter config --no-animations &> $DEBUG_OFF
 
       - name: Set env
         run: |
