@@ -221,7 +221,7 @@ jobs:
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.${UNSET_COLOR}"
           else
             echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
-            return 1
+            exit 1
           fi || (exit 1)
 
       - uses: actions/upload-artifact@v4
