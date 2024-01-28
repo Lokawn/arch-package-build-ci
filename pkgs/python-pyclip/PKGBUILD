@@ -4,25 +4,25 @@
 _pkgname=pyclip
 pkgname=python-${_pkgname}
 pkgver=0.7.0
-pkgrel=3
+pkgrel=4
 pkgdesc='Cross-platform clipboard utilities supporting both binary and text data'
 arch=(any)
 url="https://pypi.org/project/${_pkgname}/"
-license=(Apache)
+license=(Apache-2.0)
 depends=(python)
 makedepends=(python-setuptools)
 optdepends=('xclip: Support for X11'
-			'wl-clipboard: Support for Wayland')
+            'wl-clipboard: Support for Wayland')
 source=("${_pkgname}-${pkgver}.tar.gz::https://github.com/spyoungtech/pyclip/archive/refs/tags/v${pkgver}.tar.gz")
 sha512sums=('64849befe020b0ac38aa8ed93ceb7fb275112aa49ae527fc54916ea591e09ce5a1a669d8f68083b098112a90fd36f71d2abeef6c3a8908e6cde20f04b0273877')
 
 build() {
-	cd "${_pkgname}-${pkgver}"
-	python setup.py build
+    cd "${_pkgname}-${pkgver}"
+    python setup.py build
 }
 
 package() {
-	cd "${_pkgname}-${pkgver}"
-	python setup.py install --skip-build --root="${pkgdir}" --optimize=1
-	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+    cd "${_pkgname}-${pkgver}"
+    python setup.py install --skip-build --root="${pkgdir}" --optimize=1
+    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

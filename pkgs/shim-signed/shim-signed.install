@@ -1,5 +1,5 @@
 post_install() {
-	cat <<EOF
+		cat <<EOF
   WARNING: Since version 15.3, shim requires SBAT.
   It WILL NOT launch EFI binaries without a .sbat section.
   See the upstream documentation: https://github.com/rhboot/shim/blob/main/SBAT.md
