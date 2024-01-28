@@ -139,6 +139,7 @@ jobs:
           ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
         run: |
           source "$GITHUB_WORKSPACE/action/bin/set_debug.sh"
+          source "$GITHUB_WORKSPACE/action/bin/set_color.sh"
           source "$GITHUB_WORKSPACE/action/bin/syncweb.sh"
           rm -rvf "$GITHUB_WORKSPACE/repo/x86_64-old" &> $DEBUG_OFF
           rsyncfiles "$GITHUB_WORKSPACE/repo/" "$REMOTE"
