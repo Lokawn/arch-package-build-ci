@@ -29,6 +29,7 @@ validpgpkeys=(
   '991F6E3F0765CF6295888586139B09DA5BF0D338' # David Runge <dvzrv@archlinux.org>
   'BB8E6F1B81CF0BB301D74D1CBF425A01E68B38EF' # nl6720 <nl6720@gmail.com>
 )
+group=('personal-repo')
 
 pkgver() {
   cd "${pkgname%-git}"

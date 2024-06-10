@@ -1,7 +1,7 @@
 # Maintainer: Danct12 <danct12@disroot.org>
 
 pkgname=libglibutil
-pkgver=1.0.72
+pkgver=1.0.79
 pkgrel=1
 pkgdesc="Library of glib utilities"
 arch=('x86_64' 'i686' 'armv7h' 'aarch64')
@@ -10,7 +10,7 @@ license=('BSD')
 depends=('glib2')
 makedepends=('git')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/${pkgver}.tar.gz")
-sha512sums=('ce153f9c7c4ae6d749b5015e430d836b642f1d2344c3d52e7670dfa2b101a9ce9b1f809b80f8320b0e02564d8fcc55056adfe4c897e4431259236c553af600eb')
+sha512sums=('ee0b72d859702c142d86a3147fe5fca48ea0296c5aaf63f355fd7f46eaae027481ad1de3a6ebb7c41205ea1a586f0ccfd8fe41b6d3bf6111fa613df69173e3dc')
 
 build() {
   cd "${pkgname}-${pkgver}"

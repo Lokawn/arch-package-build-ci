@@ -1,0 +1,11 @@
+--- a/Makethird
++++ b/Makethird
+@@ -11,7 +11,7 @@
+   USE_SYSTEM_MUJS := no # not available
+   USE_SYSTEM_OPENJPEG := yes
+   USE_SYSTEM_ZLIB := yes
+-  USE_SYSTEM_GLUT := yes
++  USE_SYSTEM_GLUT := no
+   USE_SYSTEM_CURL := yes
+   USE_SYSTEM_LEPTONICA := yes
+   USE_SYSTEM_TESSERACT := yes

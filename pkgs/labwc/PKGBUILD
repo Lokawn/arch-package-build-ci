@@ -1,0 +1,24 @@
+# Maintainer: Lex Black <autumn-wind@web.de>
+
+pkgname=labwc
+pkgver=0.7.2
+pkgrel=1
+pkgdesc='stacking wayland compositor with look and feel from openbox'
+url="https://github.com/labwc/labwc"
+arch=('x86_64')
+license=('GPL-2.0-only')
+depends=('libpng' 'librsvg' 'pango' 'seatd' 'wlroots>=0.17' 'wlroots<0.18' 'wayland' 'xorg-xwayland')
+makedepends=('meson' 'scdoc' 'wayland-protocols')
+optdepends=("bemenu: default launcher via Alt+F3")
+source=(${pkgname}-${pkgver}.tar.gz::"https://github.com/labwc/labwc/archive/${pkgver}.tar.gz")
+sha512sums=('3d30586de37aadce9d30496b89c4fcc69a25c352982135a8299e699ff49fdbd17005e2efb1f52bebc0fba9f7743a63be8d2c9882644765ae3f752cd274194f86')
+group=('personal-repo')
+
+build() {
+  arch-meson -Dman-pages=enabled "$pkgname-$pkgver" build
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+}
