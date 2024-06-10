@@ -23,6 +23,7 @@ jobs:
         name: Checkout build-action repository for scripts.
         with:
           repository: Lokawn/arch-package-build-action
+          ref: WIP
           path: action
           persist-credentials: false
           show-progress: false
