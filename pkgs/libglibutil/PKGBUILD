@@ -11,7 +11,7 @@ depends=('glib2')
 makedepends=('git')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/${pkgver}.tar.gz")
 sha512sums=('ee0b72d859702c142d86a3147fe5fca48ea0296c5aaf63f355fd7f46eaae027481ad1de3a6ebb7c41205ea1a586f0ccfd8fe41b6d3bf6111fa613df69173e3dc')
-
+group=('personal-repo')
 build() {
   cd "${pkgname}-${pkgver}"
   make KEEP_SYMBOLS=1 release pkgconfig
