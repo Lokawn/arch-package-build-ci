@@ -17,6 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         name: Checkout Repository to Github workspace with single commit to copy pkglist and package sources.
         with:
+          ref: Updates
           persist-credentials: false
           show-progress: false
       - uses: actions/checkout@v4
