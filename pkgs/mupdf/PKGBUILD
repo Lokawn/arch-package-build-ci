@@ -19,8 +19,11 @@ makedepends=(
   'curl'
   'desktop-file-utils'
   # 'freeglut'
+  # exclusive freeglut makedepends
+  'libxxf86vm'
+  'cmake'
+  'ninja'
   'freetype2'
-  'git'
   'glu'
   'gumbo-parser'
   'harfbuzz'
@@ -168,6 +171,8 @@ package_mupdf-gl() {
     'libgl'
     'libmupdf'
     'openssl'
+    'libxi'
+    'libxrandr'
   )
 
   cd $pkgbase
