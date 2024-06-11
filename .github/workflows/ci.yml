@@ -78,7 +78,6 @@ jobs:
           SSHKEY: ${{ secrets.SSHKEY }}
           REMOTE: ${{ secrets.REMOTE }}
           HOST: ${{ secrets.HOST }}
-          ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
         run: |
           source "$GITHUB_WORKSPACE/action/bin/set_debug.sh"
           source "$GITHUB_WORKSPACE/action/bin/set_color.sh"
@@ -96,8 +95,8 @@ jobs:
           sed -e '/^[ \t]*$/d' -e 's/^[ \t]*//' -e 's/[ \t]*$//' -e '/^#/d' -i "$GITHUB_WORKSPACE/pkglist"
 
           # copy_pkg.sh
-          copy_pkg_files
-          seg_pkg_files
+          copy_pkg_files # copy files to ${GITHUB_WORKSPACE}/pkgdir/
+          # seg_pkg_files # after preparing SRCINFO.
 
           if compgen -G "$GITHUB_WORKSPACE"/pkgdir/*.zst &> /dev/null
           then
@@ -108,13 +107,13 @@ jobs:
 
           cd "$GITHUB_WORKSPACE/repo"
           mkdir -vp x86_64-old &> $DEBUG_OFF
-          mv -v x86_64/* x86_64-old/ &> $DEBUG_OFF
+          mv -v x86_64/* x86_64-old/ &> $DEBUG_OFF # Move repo to x86_64-old/
           rm -vrf x86_64 &> $DEBUG_OFF
           mkdir -vp "$GITHUB_WORKSPACE"/repo/x86_64 &> $DEBUG_OFF
+        # TODO: Break MAKEPKG into multiple steps.
       - uses: Lokawn/arch-package-build-action@main
         name: MAKEPKG
         env:
-          ENABLE_DEBUG: ${{ vars.ENABLE_DEBUG }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
           KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
