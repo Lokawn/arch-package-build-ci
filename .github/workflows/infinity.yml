@@ -80,7 +80,6 @@ jobs:
         id: main_step
         env:
             REDIRECT_URL: 'http://127.0.0.1'
-            JAVA_HOME: ${{ vars.JAVA_HOME_17_X64 }}
             API_TOKEN: ${{ secrets.API_TOKEN_INFINITY }}
             USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
             KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
@@ -90,6 +89,7 @@ jobs:
             ANDROID_NDK_ROOT: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
             KEYSTORE_PKCS: ${{ github.workspace }}/keystore.pkcs
         run: |
+          export JAVA_HOME="${JAVA_HOME_17_X64}"
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
           cd "${APPDIR}"
