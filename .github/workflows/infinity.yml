@@ -23,8 +23,6 @@ jobs:
   build_job:
     name: Build Job.
     runs-on: ubuntu-latest
-    env:
-      JAVA_HOME: ${{ vars.JAVA_HOME_17_X64 }}
     defaults:
       run:
         shell: bash
@@ -82,6 +80,7 @@ jobs:
         id: main_step
         env:
             REDIRECT_URL: 'http://127.0.0.1'
+            JAVA_HOME: ${{ vars.JAVA_HOME_17_X64 }}
             API_TOKEN: ${{ secrets.API_TOKEN_INFINITY }}
             USER_AGENT: "android:github_ci-app:0.${{ github.run_number }}.${{ github.run_attempt }} built by ${{ github.actor }}"
             KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
