@@ -41,6 +41,7 @@ makedepends=(
 )
 options=('staticlibs')
 source=(
+  'https://mupdf.com/downloads/archive/mupdf-1.24.3-source.tar.gz'
   $pkgbase.desktop
   $pkgbase.xpm
   $pkgbase.pc
@@ -49,7 +50,8 @@ source=(
   $pkgbase-force_build_glut.patch
 )
 group=('personal-repo')
-sha256sums=('ccff66979249bd4ab4ba8918660f194eb90eb0ae231b16e36a6cecdcf471883f'
+sha256sums=('fcb8b6cc77304fbbc6edd3f9365412353ff4cfd804a0f2b1f475d97a79771e65'
+            'ccff66979249bd4ab4ba8918660f194eb90eb0ae231b16e36a6cecdcf471883f'
             'a435f44425f5432c074dee745d8fbaeb879038ec1f1ec64f037c74662f09aca8'
             'bb797ac84edc9856fa828f87e9be684714b7ab2c8bca3372a81fbfa0da018ac4'
             '152222c0bc066404d9e38be7abbba20748b0a4bbc9cb30403d19e3b176ab257f'
@@ -57,48 +59,11 @@ sha256sums=('ccff66979249bd4ab4ba8918660f194eb90eb0ae231b16e36a6cecdcf471883f'
             '65e167f5424a3618dc6f4e8a1a1f9a7896ae346eaf6a4a642f66fc4170b78cbd')
 
 prepare() {
-    if [ -d "${SRCDEST}/${pkgbase}.git" ] && cd "${SRCDEST}/${pkgbase}.git" && git fetch origin "${pkgver}"; then
-        true
-    else
-        [ -d "${SRCDEST}/${pkgbase}.git" ] && rm -rf "${SRCDEST}/${pkgbase}.git"
-        git clone https://github.com/ArtifexSoftware/mupdf.git --depth=1 --branch="${pkgver}" --bare "${SRCDEST}/${pkgbase}.git"
-    fi
-
-    [ -d "${srcdir}/${pkgbase}" ] && rm -rf "${srcdir}/${pkgbase}"
-
-    git clone "${SRCDEST}/${pkgbase}.git" "${srcdir}/${pkgbase}" --branch="${pkgver}" > /dev/null 2>&1
-
-    if [ -d "${SRCDEST}/mujs.git" ] && cd "${SRCDEST}/mujs.git" && git fetch origin; then
-        true
-    else
-        [ -d "${SRCDEST}/mujs.git" ] && rm -rf "${SRCDEST}/mujs.git"
-        git clone https://github.com/ArtifexSoftware/mujs.git --depth=1 --bare "${SRCDEST}/mujs.git"
-    fi
-
-    if [ -d "${SRCDEST}/thirdparty-lcms2.git" ] && cd "${SRCDEST}/thirdparty-lcms2.git" && git fetch origin; then
-        true
-    else
-        [ -d "${SRCDEST}/thirdparty-lcms2.git" ] && rm -rf "${SRCDEST}/thirdparty-lcms2.git"
-        git clone https://github.com/ArtifexSoftware/thirdparty-lcms2.git --depth=1 --bare "${SRCDEST}/thirdparty-lcms2.git"
-    fi
-
-    if [ -d "${SRCDEST}/extract.git" ] && cd "${SRCDEST}/extract.git" && git fetch origin; then
-        true
-    else
-        [ -d "${SRCDEST}/extract.git" ] && rm -rf "${SRCDEST}/extract.git"
-        git clone https://github.com/ArtifexSoftware/extract.git --depth=1 --bare "${SRCDEST}/extract.git"
-    fi
-
-    if [ -d "${SRCDEST}/thirdparty-freeglut.git" ] && cd "${SRCDEST}/thirdparty-freeglut.git" && git fetch origin; then
-        true
-    else
-        [ -d "${SRCDEST}/thirdparty-freeglut.git" ] && rm -rf "${SRCDEST}/thirdparty-freeglut.git"
-        git clone https://github.com/ArtifexSoftware/thirdparty-freeglut.git --depth=1 --bare "${SRCDEST}/thirdparty-freeglut.git"
-    fi
-
   # upstream does not provide a pkg-config integration
   cd "${srcdir}"
   sed -e "s/VERSION/$pkgver/" -i $pkgbase.pc
+
+  mv $pkgbase-$pkgver-source $pkgbase
 
   cd $pkgbase
 
@@ -108,28 +73,7 @@ prepare() {
   patch -Np1 -i ../$pkgbase-1.23.9-install_targets.patch
   patch -Np1 -i ../$pkgbase-force_build_glut.patch
 
-  # init submodules and disable the ones we don't need, we want our system libraries instead
-  git submodule init
-
   rm -rvf thirdparty/{curl,freetype,gumbo-parser,harfbuzz,jbig2dec,leptonica,libjpeg,openjpeg,tesseract,zlib}
-
-  git submodule deinit thirdparty/curl
-  git submodule deinit thirdparty/freetype
-  git submodule deinit thirdparty/gumbo-parser
-  git submodule deinit thirdparty/harfbuzz
-  git submodule deinit thirdparty/jbig2dec
-  git submodule deinit thirdparty/leptonica
-  git submodule deinit thirdparty/libjpeg
-  git submodule deinit thirdparty/openjpeg
-  git submodule deinit thirdparty/tesseract
-  git submodule deinit thirdparty/zlib
-
-  # update required third party libraries
-  git config submodule.thirdparty/mujs.url "${SRCDEST}/mujs" # is hardcoded and needs a patch to debundle
-  git config submodule.thirdparty/freeglut.url "${SRCDEST}/thirdparty-freeglut" # requires fork (not the version in arch repo)
-  git config submodule.thirdparty/lcms2.url "${SRCDEST}/thirdparty-lcms2" # requires fork (not the version we are packaging)
-  git config submodule.thirdparty/extract.url "${SRCDEST}/extract" # we do not package this one
-  git -c protocol.file.allow=always submodule update
 
   {
     printf "LINUX_OR_OPENBSD := yes\n"  # required so that Makefile sets soname symlink
