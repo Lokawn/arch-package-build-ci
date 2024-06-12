@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
 
 env:
-  # JAVA_HOME = /usr/lib/jvm/temurin-11-jdk-amd64
   # ANDROID_SDK_ROOT = /usr/local/lib/android/sdk
   # Setting an environment variable with the value of a configuration variable
   VARIANT: ${{ vars.VARIANT_INFINITY }}
@@ -90,6 +89,7 @@ jobs:
             ANDROID_NDK_ROOT: '/usr/local/lib/android/sdk/ndk/26.1.10909125'
             KEYSTORE_PKCS: ${{ github.workspace }}/keystore.pkcs
         run: |
+          export JAVA_HOME="${JAVA_HOME_17_X64}"
           [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
 
           cd "${APPDIR}"
