@@ -97,7 +97,7 @@ prepare() {
     sed -i 's/channel = "[0-9\.]*"$/channel = "stable"/' rust-toolchain.toml # use most recent stable rust toolchain
     # Build process wants .git/HEAD to be present. Workaround to be able to use tarballs
     # (together with disable-git-checks.patch)
-    mkdir -p .git
+    mkdir -p .git out
     touch .git/HEAD
     echo "${_tags[anki]}" > out/buildhash	# manually write the buildhash into out/buildhash to avoid git dependency in build
 

@@ -3,6 +3,7 @@
 
 _pkgname=waydroid
 pkgname=waydroid-git
+_pkgver=1.4.2
 pkgver=1.4.2.r0.g209c90d
 pkgrel=1
 pkgdesc="A container-based approach to boot a full Android system on a regular Linux system (Git)."
