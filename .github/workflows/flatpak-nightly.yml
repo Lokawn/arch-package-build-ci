@@ -172,7 +172,16 @@ jobs:
 
           chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
 
-          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" \
+          PROJECT=${HOST##*project-web\/}
+          PROJECT=${PROJECT%%\/htdocs*}
+
+          preserve=$(curl -sf -L https://$PROJECT.sourceforge.io/flatpak | grep --color=never -o "<a [A-Za-z]*=.*flatpak\">" | cut -d'"' -f2 | tail -5 | xargs)
+
+          for flatpak_file in ${preserve}; do
+            wget --directory-prefix="${GITHUB_WORKSPACE}/${APP}-${version}/" https://$PROJECT.sourceforge.io/flatpak/"${flatpak_file}"{,.sig}
+          done
+
+          if rsync -a --delete -e "ssh -v -i /home/runner/.ssh/id_ed25519" \
                 "${GITHUB_WORKSPACE}/${APP}-${version}/" "${REMOTE}/flatpak/" &> $DEBUG_OFF; then
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
           else
