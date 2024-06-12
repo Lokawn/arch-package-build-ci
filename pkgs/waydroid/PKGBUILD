@@ -8,19 +8,23 @@ pkgdesc="A container-based approach to boot a full Android system on a regular L
 arch=('any')
 url='https://waydro.id/'
 _url='https://github.com/waydroid/waydroid'
-license=('GPL')
+license=('GPL3')
 depends=('lxc' 'python-gbinder' 'python-gobject' 'nftables' 'dnsmasq' 'gtk3' 'dbus-python')
-makedepends=('git')
-optdepends=('python-pyclip: share clipboard with container')
+install="$pkgname.install"
+optdepends=('waydroid-image: Android image for use with waydroid'
+            'python-pyclip: share clipboard with container')
 source=("${pkgname}-${pkgver}.tar.gz::${_url}/archive/refs/tags/${pkgver}.tar.gz"
         "add-shutdown-action.patch")
 sha512sums=('0d3eba799895c853545b7087e3c07160d593d4a3166822039973669bc0ee93a8a6b9c394a7d982e57cfbbfbd8df1ba7991dd33b1b1517d79fcbe191d8a86890a'
             '81b5bb64122c1670f9533998219821e778702d3cec15915719e872de3811ede4714485b509269d695f016c76f3783dbe6a60d45a0d10df0c19cb67fa61d08c4f')
+conflicts=("$pkgname-git")
 
 prepare() {
-  cd "$pkgname-$pkgver"
-  patch -p1 < "$srcdir/add-shutdown-action.patch"
+    cd "$pkgname-$pkgver"
+    patch -p1 < "$srcdir/add-shutdown-action.patch"
 }
+
 package() {
-  make -C "${pkgname}-${pkgver}" install DESTDIR="$pkgdir" USE_NFTABLES=1
+    make -C "${pkgname}-${pkgver}" install install_apparmor DESTDIR="$pkgdir" USE_DBUS_ACTIVATION=1 USE_SYSTEMD=1 USE_NFTABLES=1
+    install -Dm644 "${pkgname}-${pkgver}/LICENSE" "$pkgdir/usr/share/licenses/$_pkgname/LICENSE"
 }

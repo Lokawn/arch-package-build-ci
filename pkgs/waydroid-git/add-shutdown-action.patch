@@ -1,0 +1,38 @@
+--- a/tools/services/user_manager.py
++++ b/tools/services/user_manager.py
+@@ -61,6 +61,12 @@
+ X-Purism-FormFactor=Workstation;Mobile;
+ Icon=waydroid
+ NoDisplay={str(hide).lower()}
++Actions=Shutdown
++
++[Desktop Action Shutdown]
++Exec=bash -c '(waydroid status|grep RUNNING) && if ! (pkexec waydroid shell svc power shutdown && waydroid session stop) ; then notify-send -i waydroid -a Waydroid \"Waydroid session has failed to shutdown\";fi'
++Icon=waydroid
++Name=Shutdown Waydroid
+ """)
+ 
+     def userUnlocked(uid):
+@@ -76,6 +82,22 @@
+             for app in appsList:
+                 makeDesktopFile(app)
+             multiwin = platformService.getprop("persist.waydroid.multi_windows", "false")
++            desktop_file_path_shutdown = apps_dir + "/shutdown-waydroid.desktop"
++            if os.path.isfile(desktop_file_path_shutdown):
++                os.remove(desktop_file_path_shutdown)
++            if multiwin == "true":
++                with open(desktop_file_path_shutdown, "w") as desktop_file:
++                    desktop_file.write(f"""\
++[Desktop Entry]
++Type=Application
++Name=Shutdown Waydroid
++Exec=bash -c '(waydroid status|grep RUNNING) && if ! (pkexec waydroid shell svc power shutdown && waydroid session stop) ; then notify-send -i waydroid -a Waydroid \"Waydroid session has failed to shutdown\";fi'
++Categories=X-WayDroid-App;
++X-Purism-FormFactor=Workstation;Mobile;
++Icon=waydroid
++NoDisplay=false
++""")
++
+             makeWaydroidDesktopFile(multiwin == "true")
+         if unlocked_cb:
+             unlocked_cb()

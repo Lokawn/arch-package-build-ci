@@ -1,0 +1,49 @@
+# Maintainer: Danct12 <danct12@disroot.org>
+# Contributor: Bart Ribbers <bribbers@disroot.org>
+
+_pkgname=waydroid
+pkgname=waydroid-git
+pkgver=1.4.2.r0.g209c90d
+pkgrel=1
+pkgdesc="A container-based approach to boot a full Android system on a regular Linux system (Git)."
+arch=('any')
+url='https://waydro.id/'
+_url='https://github.com/waydroid/waydroid'
+license=('GPL3')
+depends=('lxc' 'python-gbinder' 'python-gobject' 'nftables' 'dnsmasq' 'gtk3' 'dbus-python')
+makedepends=('git')
+optdepends=('waydroid-image: Android image for use with waydroid'
+            'python-pyclip: share clipboard with container')
+install="$pkgname.install"
+source=("add-shutdown-action.patch")
+sha512sums=('81b5bb64122c1670f9533998219821e778702d3cec15915719e872de3811ede4714485b509269d695f016c76f3783dbe6a60d45a0d10df0c19cb67fa61d08c4f')
+provides=("$_pkgname")
+conflicts=("$_pkgname")
+
+prepare() {
+    if [ -d "${SRCDEST}/${_pkgname}.git" ] && cd "${SRCDEST}/${_pkgname}.git" && git fetch origin main; then
+        true
+    else
+        [ -d "${SRCDEST}/${_pkgname}.git" ] && rm -rf "${SRCDEST}/${_pkgname}.git"
+        git clone ${_url} --depth=1 --bare --branch="${_pkgver}" "${SRCDEST}/${_pkgname}.git"
+        cd "${SRCDEST}/${_pkgname}.git"
+        git fetch origin main
+    fi
+
+    [ -d "${srcdir}/${_pkgname}" ] && rm -rf "${srcdir}/${_pkgname}"
+
+    git clone "${SRCDEST}/${_pkgname}.git" "${srcdir}/${_pkgname}" > /dev/null 2>&1
+
+    cd "${srcdir}/$_pkgname"
+    patch -p1 < "$srcdir/add-shutdown-action.patch"
+}
+
+pkgver() {
+    cd "$_pkgname"
+    git describe --long --tags --abbrev=7 | sed 's/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+package() {
+    make -C "${_pkgname}" install install_apparmor DESTDIR="$pkgdir" USE_DBUS_ACTIVATION=1 USE_SYSTEMD=1 USE_NFTABLES=1
+    install -Dm644 "${_pkgname}/LICENSE" "$pkgdir/usr/share/licenses/$_pkgname/LICENSE"
+}
