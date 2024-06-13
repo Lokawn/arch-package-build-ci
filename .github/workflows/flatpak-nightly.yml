@@ -133,7 +133,7 @@ jobs:
           echo -e "${PRIVATE_KEY}" | gpg --batch --import &> $DEBUG_OFF
           echo "${PASSPHRASE}" | gpg --detach-sign --pinentry-mode loopback \
             --passphrase --passphrase-fd 0 --sign \
-              "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" &> $DEBUG_OFF
+              "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" &> /dev/null && echo "Signed ${APP}-${version}.x86_64.flatpak"
 
           mkdir -vp "${GITHUB_WORKSPACE}/${APP}-${version}" &> $DEBUG_OFF
           mv -t "${GITHUB_WORKSPACE}/${APP}-${version}/" \
@@ -166,13 +166,23 @@ jobs:
 
           [[ -f "/home/runner/.ssh/id_ed25519" ]] && rm "/home/runner/.ssh/id_ed25519" && return 1 || touch "/home/runner/.ssh/known_hosts"
 
-          echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF || \
+          echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519" &> /dev/null || \
             ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to write ssh private key' - aborting.${UNSET_COLOR}" \
               && exit 1 )
 
           chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
 
-          if rsync -a -e "ssh -v -i /home/runner/.ssh/id_ed25519" \
+          PROJECT=${REMOTE##*project-web\/}
+          PROJECT=${PROJECT%%\/htdocs*}
+
+          preserve=$(curl -sf -L https://$PROJECT.sourceforge.io/flatpak | grep --color=never -o "<a [A-Za-z]*=.*flatpak\">" | cut -d'"' -f2 | tail -5 | xargs)
+
+          for flatpak_file in ${preserve}; do
+            wget --directory-prefix="${GITHUB_WORKSPACE}/${APP}-${version}/" https://$PROJECT.sourceforge.io/flatpak/"${flatpak_file}"{,.sig} &> $DEBUG_OFF \
+              && gpg --verify "${flatpak_file}.sig" "${flatpak_file}" &> $DEBUG_OFF || (echo -e "${RED_COLOR}${flatpak_file} failed integrity check - removing file." && rm -f ${flatpak_file}{,.sig})
+          done
+
+          if rsync -a --delete -e "ssh -v -i /home/runner/.ssh/id_ed25519" \
                 "${GITHUB_WORKSPACE}/${APP}-${version}/" "${REMOTE}/flatpak/" &> $DEBUG_OFF; then
             echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
           else
