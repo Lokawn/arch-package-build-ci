@@ -178,7 +178,7 @@ jobs:
           preserve=$(curl -sf -L https://$PROJECT.sourceforge.io/flatpak | grep --color=never -o "<a [A-Za-z]*=.*flatpak\">" | cut -d'"' -f2 | tail -5 | xargs)
 
           for flatpak_file in ${preserve}; do
-            wget --directory-prefix="${GITHUB_WORKSPACE}/${APP}-${version}/" https://$PROJECT.sourceforge.io/flatpak/"${flatpak_file}"{,.sig}
+            wget --directory-prefix="${GITHUB_WORKSPACE}/${APP}-${version}/" https://$PROJECT.sourceforge.io/flatpak/"${flatpak_file}"{,.sig} &> $DEBUG_OFF
           done
 
           if rsync -a --delete -e "ssh -v -i /home/runner/.ssh/id_ed25519" \
