@@ -179,12 +179,16 @@ jobs:
 
           for flatpak_file in ${preserve}; do
             wget --directory-prefix="${GITHUB_WORKSPACE}/${APP}-${version}/" https://$PROJECT.sourceforge.io/flatpak/"${flatpak_file}"{,.sig} &> $DEBUG_OFF \
-              && gpg --verify "${flatpak_file}.sig" "${flatpak_file}" &> $DEBUG_OFF || (echo -e "${RED_COLOR}${flatpak_file} failed integrity check - removing file." && rm -f ${flatpak_file}{,.sig})
+              && gpg --verify "${GITHUB_WORKSPACE}/${APP}-${version}/${flatpak_file}.sig" "${GITHUB_WORKSPACE}/${APP}-${version}/${flatpak_file}" &> $DEBUG_OFF \
+              || (echo -e "${RED_COLOR}${flatpak_file} failed integrity check - removing file." && rm -f ${flatpak_file}{,.sig})
           done
+
+          wget --output-document="${GITHUB_WORKSPACE}/${APP}-${version}/VERSION.old" https://$PROJECT.sourceforge.io/flatpak/VERSION &> $DEBUG_OFF \
+            || echo -e "${ORANGE_COLOR}Failed to download previous version data.${UNSET_COLOR}"
 
           if rsync -a --delete -e "ssh -v -i /home/runner/.ssh/id_ed25519" \
                 "${GITHUB_WORKSPACE}/${APP}-${version}/" "${REMOTE}/flatpak/" &> $DEBUG_OFF; then
-            echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
+            echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.${UNSET_COLOR}"
           else
             echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
             exit 1
