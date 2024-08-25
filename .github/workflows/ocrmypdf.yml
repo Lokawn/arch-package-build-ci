@@ -1,0 +1,170 @@
+name: "Convert Files."
+
+on:
+  workflow_dispatch:
+
+env:
+  DEBUG_OFF: '/dev/null'
+  # setup colors
+  RED_COLOR: '\e[1;31m'
+  ORANGE_COLOR: '\e[1;33m'
+  BLUE_COLOR: '\e[0;34m'
+  BOLD_TEXT: '\e[1m'
+  UNSET_COLOR: '\e[0m'
+
+permissions:
+  contents: read
+
+jobs:
+  build_job:
+    name: Build Job.
+    runs-on: ubuntu-latest
+    container: fedora:rawhide
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: "Setup for debugging workflow."
+        if: ${{ runner.debug == '1' }}
+        run: |
+          set -x
+          echo -e "set -x\nexport DEBUG_OFF='/dev/stdout'" > ${GITHUB_WORKSPACE}/debug.sh
+
+      - name: "Set-up PATH and update build tools."
+        run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
+          echo "/usr/bin:/usr/sbin:/bin:/sbin" >> $GITHUB_PATH
+
+          sudo dny --yes upgrade &> $DEBUG_OFF
+          sudo dnf --yes install ocrmypdf &> $DEBUG_OFF
+
+          echo "keyserver hkps://keys.openpgp.org" > \
+            tee "~/.gnupg/gpg.conf" &> $DEBUG_OFF
+
+      - name: "Get latest binary."
+        run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
+          ftp_server="https://ftp.mozilla.org/pub/firefox/nightly/latest-mozilla-central/"
+
+          firefox_pipeline=$(curl ${ftp_server} | \
+            grep "en-US.linux-x86_64.checksums" | \
+              sed 's/^.*>firefox-//;s/\.en-US.*//' | sort -n | tail -n 1)
+              
+          build_id=$(curl ${ftp_server}firefox-${firefox_pipeline}.en-US.linux-x86_64_info.txt | grep "^buildID" | cut -d= -f2)
+
+          pipeline_id="${build_id:2:2}${build_id:4:4}.${build_id:8:4}"
+          build_date="${build_id:0:4}-${build_id:4:2}-${build_id:6:2}"
+
+          version="${firefox_pipeline}.${pipeline_id}"
+          echo "version=$version" >> $GITHUB_ENV
+
+          download_url="${ftp_server}firefox-${firefox_pipeline}.en-US.linux-x86_64.tar.bz2"
+
+          filename="firefox-${firefox_pipeline}.en-US.linux-x86_64.tar.bz2"
+
+          cd "${GITHUB_WORKSPACE}/flatpak/${APP}"
+
+          curl -o ${filename}.asc ${download_url}.asc \
+            -o ${filename} ${download_url} &> $DEBUG_OFF
+
+          gpg --import KEY.gpg &> $DEBUG_OFF
+
+          gpg --verify ${filename}.asc ${filename} &> $DEBUG_OFF || \
+            ( echo -e "${RED_COLOR}${BOLD_TEXT}Firefox binary not verified - aborting." && exit 1 )
+
+          sed -i "s/XversionX/${version}/;s/XdateX/${build_date}/" \
+            "${APP}.appdata.xml" &> $DEBUG_OFF
+
+          sed -i "s/XversionX/${version}/" "distribution.ini" &> $DEBUG_OFF
+
+          sed -i \
+           -e "s/Xbinary_sha256X/$(sha256sum ${filename} | awk '{ printf $1 }')/" \
+           -e "s/XversionX/${firefox_pipeline}/" \
+           -e "s/Xappdata_sha256X/$(sha256sum ${APP}.appdata.xml | awk '{ printf $1 }')/" \
+           -e "s/Xdistrib_sha256X/$(sha256sum distribution.ini | awk '{ printf $1 }')/" \
+           "${APP}.yaml" &> $DEBUG_OFF
+
+      - name: "Compile Firefox Nightly flatpak bundle."
+        run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
+          cd "${GITHUB_WORKSPACE}/flatpak/${APP}"
+
+          flatpak-builder --repo=nightly build \
+            "${APP}".yaml --force-clean --user --install &> $DEBUG_OFF
+
+          flatpak build-bundle nightly --arch=x86_64 \
+            --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
+            "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" "${APP}" &> $DEBUG_OFF
+
+      - name: "Sign flatpak bundle."
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.PASSPHRASE }}
+        run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
+          cd "${GITHUB_WORKSPACE}/flatpak/${APP}"
+
+          echo -e "${PRIVATE_KEY}" | gpg --batch --import &> $DEBUG_OFF
+          echo "${PASSPHRASE}" | gpg --detach-sign --pinentry-mode loopback \
+            --passphrase --passphrase-fd 0 --sign \
+              "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" &> /dev/null && echo "Signed ${APP}-${version}.x86_64.flatpak"
+
+          mkdir -vp "${GITHUB_WORKSPACE}/${APP}-${version}" &> $DEBUG_OFF
+          mv -t "${GITHUB_WORKSPACE}/${APP}-${version}/" \
+            "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" \
+            "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak.sig"
+          echo "${version}" > "${GITHUB_WORKSPACE}/${APP}-${version}/VERSION"
+
+      - name: "Upload Flatpak."
+        env:
+          SSHKEY: ${{ secrets.SSHKEY }}
+          REMOTE: ${{ secrets.REMOTE }}
+          HOST: ${{ secrets.HOST }}
+        run: |
+          [[ -f "${GITHUB_WORKSPACE}/debug.sh" ]] && source "${GITHUB_WORKSPACE}/debug.sh"
+
+          [[ -f "/home/runner/.ssh/known_hosts" ]] && \
+            rm "/home/runner/.ssh/known_hosts" && return 1 || \
+              ( mkdir -p "/home/runner/.ssh" && touch "/home/runner/.ssh/known_hosts" )
+
+          echo "$HOST" | tee -a "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF || \
+            ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to append REMOTE to '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
+              && exit 1 )
+
+          echo -e "${BLUE_COLOR}${BOLD_TEXT}REMOTE appended to '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}"
+
+          chmod -v 0600 "/home/runner/.ssh/known_hosts" &> $DEBUG_OFF && \
+            echo -e "${BLUE_COLOR}${BOLD_TEXT}Corrected permissions of '~/.ssh/known_hosts' - proceeding.{UNSET_COLOR}" || \
+              ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to set correct permissions of '~/.ssh/known_hosts' - aborting.${UNSET_COLOR}" \
+                && exit 1 )
+
+          [[ -f "/home/runner/.ssh/id_ed25519" ]] && rm "/home/runner/.ssh/id_ed25519" && return 1 || touch "/home/runner/.ssh/known_hosts"
+
+          echo -e "$SSHKEY" | tee "/home/runner/.ssh/id_ed25519" &> /dev/null || \
+            ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to write ssh private key' - aborting.${UNSET_COLOR}" \
+              && exit 1 )
+
+          chmod -v 0600 "/home/runner/.ssh/id_ed25519" &> $DEBUG_OFF
+
+          PROJECT=${REMOTE##*project-web\/}
+          PROJECT=${PROJECT%%\/htdocs*}
+
+          preserve=$(curl -sf -L https://$PROJECT.sourceforge.io/flatpak | grep --color=never -o "<a [A-Za-z]*=.*flatpak\">" | cut -d'"' -f2 | tail -5 | xargs)
+
+          for flatpak_file in ${preserve}; do
+            wget --directory-prefix="${GITHUB_WORKSPACE}/${APP}-${version}/" https://$PROJECT.sourceforge.io/flatpak/"${flatpak_file}"{,.sig} &> $DEBUG_OFF \
+              && gpg --verify "${flatpak_file}.sig" "${flatpak_file}" &> $DEBUG_OFF || (echo -e "${RED_COLOR}${flatpak_file} failed integrity check - removing file." && rm -f ${flatpak_file}{,.sig})
+          done
+
+          if rsync -a --delete -e "ssh -v -i /home/runner/.ssh/id_ed25519" \
+                "${GITHUB_WORKSPACE}/${APP}-${version}/" "${REMOTE}/flatpak/" &> $DEBUG_OFF; then
+            echo -e "${BLUE_COLOR}${BOLD_TEXT}Successfully synced files - proceeding.{UNSET_COLOR}"
+          else
+            echo -e "${RED_COLOR}${BOLD_TEXT}Failed to sync files - aborting.${UNSET_COLOR}"
+            exit 1
+          fi || (exit 1)
