@@ -37,8 +37,8 @@ jobs:
 
           echo "/usr/bin:/usr/sbin:/bin:/sbin" >> $GITHUB_PATH
 
-          sudo dnf --yes upgrade &> $DEBUG_OFF
-          sudo dnf --yes install ocrmypdf jq &> $DEBUG_OFF
+          sudo dnf --assumeyes upgrade &> $DEBUG_OFF
+          sudo dnf --assumeyes install ocrmypdf jq &> $DEBUG_OFF
 
           echo "keyserver hkps://keys.openpgp.org" > \
             tee "$HOME/.gnupg/gpg.conf" &> $DEBUG_OFF
