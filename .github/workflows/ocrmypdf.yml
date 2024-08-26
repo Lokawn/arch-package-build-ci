@@ -61,7 +61,7 @@ jobs:
             echo -e "$PRIVATE_KEY" | gpg --batch --import &> $DEBUG_OFF
           done
 
-          echo"${PASSPHRASE}" | gpg --pinentry-mode loopback \
+          echo "${PASSPHRASE}" | gpg --pinentry-mode loopback \
             --passphrase-fd 0  --decrypt-files "$HOME/enc/"*.pdf.gpg &> $DEBUG_OFF || \
             ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to decrypt file - aborting." && exit 1 )
 
