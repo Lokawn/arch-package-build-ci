@@ -41,7 +41,7 @@ jobs:
           until [[ status == 0 ]]; do
             sudo dnf --assumeyes clean all &> $DEBUG_OFF && \
             sudo dnf --assumeyes distro-sync --allowerasing &> $DEBUG_OFF && \
-            sudo dnf --assumeyes upgrade --refresh &> $DEBUG_OFF && \
+            sudo dnf --assumeyes update --refresh &> $DEBUG_OFF && \
             sudo dnf --assumeyes install ocrmypdf jq wget curl parallel &> $DEBUG_OFF
             status=$?
           done
