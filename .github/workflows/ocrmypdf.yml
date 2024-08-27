@@ -37,11 +37,11 @@ jobs:
           status=1
           until [ $status = 0 ]; do
             apk update > $DEBUG_OFF 2>&1 && \
-            apk add ocrmypdf jq wget curl parallel > $DEBUG_OFF 2>&1
+            apk add ocrmypdf jq wget curl parallel gnupg > $DEBUG_OFF 2>&1
             status=$?
           done
 
-          ls -laR "$HOME"
+          mkdir -p "$HOME/.gnupg"
           echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" > $DEBUG_OFF 2>&1
           mkdir "$HOME/enc"
           ocrpdf 
