@@ -57,7 +57,7 @@ jobs:
           cd "$HOME/enc"
 
           wget --content-disposition "${URL}" 2>&1 $DEBUG_OFF || \
-            ( printf "${RED_COLOR}${BOLD_TEXT}Failed to download file - aborting.\n" && exit 1)
+            ( printf "${RED_COLOR}${BOLD_TEXT}Failed to download file - aborting.\n" && exit 1 )
 
           while ! gpg --list-secret-key | grep "$KEY_FINGERPRINT" 2>&1 $DEBUG_OFF; do
             printf "${PRIVATE_KEY}\n" | gpg --batch --import 2>&1 $DEBUG_OFF
@@ -94,7 +94,7 @@ jobs:
           tar -C "$HOME/enc/output" -cf "output.tar.gz" . 2>&1 $DEBUG_OFF
 
           gpg --always-trust -er "${KEY_FINGERPRINT}" -o "output.tar.gz.gpg" "output.tar.gz" || \
-            ( printf "${RED_COLOR}${BOLD_TEXT}Failed to encrypt file - aborting.\n" && exit 1)
+            ( printf "${RED_COLOR}${BOLD_TEXT}Failed to encrypt file - aborting.\n" && exit 1 )
 
       - name: "Upload File."
         run: |
