@@ -26,23 +26,24 @@ jobs:
         if: ${{ runner.debug == '1' }}
         run: |
           set -x
-          echo -e "set -x\nexport DEBUG_OFF='/dev/stdout'" > $HOME/debug.sh
+          printf "set -x\nexport DEBUG_OFF='/dev/stdout'" > "$HOME/debug.sh"
 
       - name: "Set-up PATH and update tools."
         run: |
-          [[ -f "$HOME/debug.sh" ]] && source "$HOME/debug.sh"
+          [ -f "$HOME/debug.sh" ] && . "$HOME/debug.sh"
 
           echo "/usr/bin:/usr/sbin:/bin:/sbin" >> $GITHUB_PATH
 
           status=1
-          until [[ status == 0 ]]; do
-            apk update &> $DEBUG_OFF && \
-            apk add ocrmypdf jq wget curl parallel &> $DEBUG_OFF
+          until [ $status = 0 ]; do
+            apk update 2>&1 $DEBUG_OFF && \
+            apk add ocrmypdf jq wget curl parallel 2>&1 $DEBUG_OFF
             status=$?
           done
 
-          echo "keyserver hkps://keys.openpgp.org" > tee "$HOME/.gnupg/gpg.conf" &> $DEBUG_OFF
+          echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" 2>&1 $DEBUG_OFF
           mkdir "$HOME/enc"
+          ocrpdf 
 
       - name: "Get File(s)."
         env:
@@ -51,24 +52,24 @@ jobs:
           KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
         run: |
-          [[ -f "$HOME/debug.sh" ]] && source "$HOME/debug.sh"
+          [ -f "$HOME/debug.sh" ] && . "$HOME/debug.sh"
 
           cd "$HOME/enc"
 
-          wget --content-disposition "${URL}" &> $DEBUG_OFF || \
-            (echo -e "${RED_COLOR}${BOLD_TEXT}Failed to download file - aborting." && exit 1)
+          wget --content-disposition "${URL}" 2>&1 $DEBUG_OFF || \
+            ( printf "${RED_COLOR}${BOLD_TEXT}Failed to download file - aborting.\n" && exit 1)
 
-          while ! gpg --list-secret-key | grep "$KEY_FINGERPRINT" &> $DEBUG_OFF; do
-            echo -e "$PRIVATE_KEY" | gpg --batch --import &> $DEBUG_OFF
+          while ! gpg --list-secret-key | grep "$KEY_FINGERPRINT" 2>&1 $DEBUG_OFF; do
+            printf "${PRIVATE_KEY}\n" | gpg --batch --import 2>&1 $DEBUG_OFF
           done
 
           echo "${PASSPHRASE}" | gpg --pinentry-mode loopback \
-            --passphrase-fd 0  --decrypt-files "$HOME/enc/"*.pdf.gpg &> $DEBUG_OFF || \
-            ( echo -e "${RED_COLOR}${BOLD_TEXT}Failed to decrypt file - aborting." && exit 1 )
+            --passphrase-fd 0  --decrypt-files "$HOME/enc/"*.pdf.gpg 2>&1 $DEBUG_OFF || \
+            ( printf "${RED_COLOR}${BOLD_TEXT}Failed to decrypt file - aborting.\n" && exit 1 )
 
       - name: "OCR File(s)."
         run: |
-          [[ -f "$HOME/debug.sh" ]] && source "$HOME/debug.sh"
+          [ -f "$HOME/debug.sh" ] && . "$HOME/debug.sh"
 
           cd  "$HOME/enc"
           mkdir tmp output
@@ -86,22 +87,22 @@ jobs:
           PASSPHRASE: ${{ secrets.PASSPHRASE }}
           KEY_FINGERPRINT: ${{ secrets.KEY_FINGERPRINT }}
         run: |
-          [[ -f "$HOME/debug.sh" ]] && source "$HOME/debug.sh"
+          [ -f "$HOME/debug.sh" ] && . "$HOME/debug.sh"
 
           cd  "$HOME/enc"
 
-          tar -C "$HOME/enc/output" -cf "output.tar.gz" . &> $DEBUG_OFF
+          tar -C "$HOME/enc/output" -cf "output.tar.gz" . 2>&1 $DEBUG_OFF
 
           gpg --always-trust -er "${KEY_FINGERPRINT}" -o "output.tar.gz.gpg" "output.tar.gz" || \
-            (echo -e "${RED_COLOR}${BOLD_TEXT}Failed to encrypt file - aborting." && exit 1)
+            ( printf "${RED_COLOR}${BOLD_TEXT}Failed to encrypt file - aborting.\n" && exit 1)
 
       - name: "Upload File."
         run: |
-          [[ -f "$HOME/debug.sh" ]] && source "$HOME/debug.sh"
+          [ -f "$HOME/debug.sh" ] && . "$HOME/debug.sh"
 
           cd  "$HOME/enc"
 
           while ! curl -F "file=@output.tar.gz.gpg" https://file.io | jq '("link = "+.link)' >> "${GITHUB_STEP_SUMMARY}"
           do
-            echo -e "${ORANGE_COLOR}${BOLD_TEXT}Failed to encrypt file - retrying.${UNSET_COLOR}"
+            printf "${ORANGE_COLOR}${BOLD_TEXT}Failed to encrypt file - retrying.${UNSET_COLOR}\n"
           done
