@@ -36,8 +36,8 @@ jobs:
 
           status=1
           until [[ status == 0 ]]; do
-            sudo apk update &> $DEBUG_OFF && \
-            sudo apk add ocrmypdf jq wget curl parallel &> $DEBUG_OFF
+            apk update &> $DEBUG_OFF && \
+            apk add ocrmypdf jq wget curl parallel &> $DEBUG_OFF
             status=$?
           done
 
