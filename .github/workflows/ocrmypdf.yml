@@ -74,8 +74,9 @@ jobs:
           export TMPDIR=tmp
 
           for pdf_file in *.pdf; do
-          parallel --tag -j 2 ocrmypdf --sidecar 'output/{}'.txt --deskew \
-            --optimize 1 '{}' 'output/{}' ::: "${pdf_file}"
+            parallel --tag -j 2 ocrmypdf --sidecar 'output/{}'.txt --deskew \
+              --optimize 1 '{}' 'output/{}' ::: "${pdf_file}"
+            echo "${pdf_file}" >> "${GITHUB_STEP_SUMMARY}"
           done
 
       - name: "Encrypt PDF File(s)."
@@ -99,6 +100,7 @@ jobs:
 
           cd  "$HOME/enc"
 
-          while ! curl -F "file=@output.tar.gz.gpg" https://file.io | jq >> "${GITHUB_STEP_SUMMARY}"; do
+          while ! curl -F "file=@output.tar.gz.gpg" https://file.io | jq '("link = "+.link)' >> "${GITHUB_STEP_SUMMARY}"
+          do
             echo -e "${ORANGE_COLOR}${BOLD_TEXT}Failed to encrypt file - retrying.${UNSET_COLOR}"
           done
