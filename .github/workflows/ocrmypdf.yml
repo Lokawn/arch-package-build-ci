@@ -42,6 +42,7 @@ jobs:
           done
 
           mkdir -p "$HOME/.gnupg" "$HOME/enc/{tmp,output}"
+          ls -la "$HOME"
           echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" > $DEBUG_OFF 2>&1
 
       - name: "Get File(s)."
