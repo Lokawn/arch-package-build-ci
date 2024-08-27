@@ -19,7 +19,7 @@ jobs:
   build_job:
     name: Build Job.
     runs-on: ubuntu-latest
-    container: fedora:rawhide
+    container: alpine:edge
     defaults:
       run:
         shell: bash
@@ -39,10 +39,8 @@ jobs:
 
           status=1
           until [[ status == 0 ]]; do
-            sudo dnf --assumeyes clean all &> $DEBUG_OFF && \
-            sudo dnf --assumeyes distro-sync --allowerasing &> $DEBUG_OFF && \
-            sudo dnf --assumeyes update --refresh &> $DEBUG_OFF && \
-            sudo dnf --assumeyes install ocrmypdf jq wget curl parallel &> $DEBUG_OFF
+            sudo apk update &> $DEBUG_OFF && \
+            sudo apk add ocrmypdf jq wget curl parallel &> $DEBUG_OFF
             status=$?
           done
 
