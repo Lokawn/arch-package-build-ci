@@ -36,12 +36,12 @@ jobs:
 
           status=1
           until [ $status = 0 ]; do
-            apk update 2>&1 $DEBUG_OFF && \
-            apk add ocrmypdf jq wget curl parallel 2>&1 $DEBUG_OFF
+            apk update > $DEBUG_OFF 2>&1 && \
+            apk add ocrmypdf jq wget curl parallel > $DEBUG_OFF 2>&1
             status=$?
           done
 
-          echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" 2>&1 $DEBUG_OFF
+          echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" > $DEBUG_OFF 2>&1
           mkdir "$HOME/enc"
           ocrpdf 
 
@@ -56,15 +56,15 @@ jobs:
 
           cd "$HOME/enc"
 
-          wget --content-disposition "${URL}" 2>&1 $DEBUG_OFF || \
+          wget --content-disposition "${URL}" > $DEBUG_OFF 2>&1 || \
             ( printf "${RED_COLOR}${BOLD_TEXT}Failed to download file - aborting.\n" && exit 1 )
 
-          while ! gpg --list-secret-key | grep "$KEY_FINGERPRINT" 2>&1 $DEBUG_OFF; do
-            printf "${PRIVATE_KEY}\n" | gpg --batch --import 2>&1 $DEBUG_OFF
+          while ! gpg --list-secret-key | grep "$KEY_FINGERPRINT" > $DEBUG_OFF 2>&1; do
+            printf "${PRIVATE_KEY}\n" | gpg --batch --import > $DEBUG_OFF 2>&1
           done
 
           echo "${PASSPHRASE}" | gpg --pinentry-mode loopback \
-            --passphrase-fd 0  --decrypt-files "$HOME/enc/"*.pdf.gpg 2>&1 $DEBUG_OFF || \
+            --passphrase-fd 0  --decrypt-files "$HOME/enc/"*.pdf.gpg > $DEBUG_OFF 2>&1 || \
             ( printf "${RED_COLOR}${BOLD_TEXT}Failed to decrypt file - aborting.\n" && exit 1 )
 
       - name: "OCR File(s)."
@@ -91,7 +91,7 @@ jobs:
 
           cd  "$HOME/enc"
 
-          tar -C "$HOME/enc/output" -cf "output.tar.gz" . 2>&1 $DEBUG_OFF
+          tar -C "$HOME/enc/output" -cf "output.tar.gz" . > $DEBUG_OFF 2>&1
 
           gpg --always-trust -er "${KEY_FINGERPRINT}" -o "output.tar.gz.gpg" "output.tar.gz" || \
             ( printf "${RED_COLOR}${BOLD_TEXT}Failed to encrypt file - aborting.\n" && exit 1 )
