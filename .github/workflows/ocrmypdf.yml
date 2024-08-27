@@ -37,7 +37,7 @@ jobs:
           status=1
           until [ $status = 0 ]; do
             apk update > $DEBUG_OFF 2>&1 && \
-            apk add ocrmypdf jq wget curl parallel gnupg > $DEBUG_OFF 2>&1
+            apk add ocrmypdf jq wget curl parallel gnupg tesseract-ocr-data-eng > $DEBUG_OFF 2>&1
             status=$?
           done
 
