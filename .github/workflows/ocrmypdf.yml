@@ -36,7 +36,7 @@ jobs:
           [[ -f "$HOME/debug.sh" ]] && source "$HOME/debug.sh"
 
           echo "/usr/bin:/usr/sbin:/bin:/sbin" >> $GITHUB_PATH
-          sudo dnf --assumeyes config-manager --set-disabled fedora-cisco-openh264 &> $DEBUG_OFF
+          sudo dnf --assumeyes --set-disabled config-manager fedora-cisco-openh264 &> $DEBUG_OFF
 
           status=1
           until [[ status == 0 ]]; do
