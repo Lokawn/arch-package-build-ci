@@ -44,7 +44,7 @@ jobs:
           mkdir -p "$HOME/.gnupg"
           echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" > $DEBUG_OFF 2>&1
           mkdir "$HOME/enc"
-          ocrpdf 
+          ocrmypdf --version 
 
       - name: "Get File(s)."
         env:
