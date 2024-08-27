@@ -20,9 +20,6 @@ jobs:
     name: Build Job.
     runs-on: ubuntu-latest
     container: alpine:edge
-    defaults:
-      run:
-        shell: bash
 
     steps:
       - name: "Setup for debugging workflow."
