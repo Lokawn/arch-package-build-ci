@@ -41,6 +41,7 @@ jobs:
             status=$?
           done
 
+          ls -laR "$HOME"
           echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" > $DEBUG_OFF 2>&1
           mkdir "$HOME/enc"
           ocrpdf 
