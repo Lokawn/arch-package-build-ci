@@ -75,7 +75,7 @@ jobs:
 
           for pdf_file in *.pdf; do
             parallel --tag -j 2 ocrmypdf --sidecar 'output/{}'.txt --deskew \
-              --optimize 1 '{}' 'output/{}' ::: "${pdf_file}"
+              --force-ocr --optimize 1 '{}' 'output/{}' ::: "${pdf_file}"
             echo "${pdf_file}" >> "${GITHUB_STEP_SUMMARY}"
           done
 
