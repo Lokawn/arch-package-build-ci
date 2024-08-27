@@ -41,10 +41,8 @@ jobs:
             status=$?
           done
 
-          mkdir -p "$HOME/.gnupg"
+          mkdir -p "$HOME/.gnupg" "$HOME/enc/{tmp,output}"
           echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" > $DEBUG_OFF 2>&1
-          mkdir "$HOME/enc"
-          ocrmypdf --version 
 
       - name: "Get File(s)."
         env:
@@ -73,7 +71,6 @@ jobs:
           [ -f "$HOME/debug.sh" ] && . "$HOME/debug.sh"
 
           cd  "$HOME/enc"
-          mkdir tmp output
           export TMPDIR=tmp
 
           for pdf_file in *.pdf; do
