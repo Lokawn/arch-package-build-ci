@@ -41,8 +41,7 @@ jobs:
             status=$?
           done
 
-          mkdir -p "$HOME/.gnupg" "$HOME/enc/{tmp,output}"
-          ls -laR "$HOME"
+          mkdir -p "$HOME/.gnupg" "$HOME/enc/tmp" "$HOME/enc/output"
           echo "keyserver hkps://keys.openpgp.org" | tee "$HOME/.gnupg/gpg.conf" > $DEBUG_OFF 2>&1
 
       - name: "Get File(s)."
