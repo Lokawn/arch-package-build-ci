@@ -72,7 +72,7 @@ modules:
         sha256: "09e513f8c3fc5b913fcdc4bc87a7f21320ed703a05ed192dade4923396dd05d3"
       - type: "file"
         path: "default-preferences.js"
-        sha256: "15715c17f7c5e5d1221f8b3bfdef8fededfb6cc49865fd2e04eb809c4c74c446"
+        sha256: "f2b18a0cf17cd1cc99e6fea1e4e7cde7fdfe77e45d8251139f092af2229846b6"
       - type: "file"
         path: "distribution.ini"
         sha256: "Xdistrib_sha256X"
