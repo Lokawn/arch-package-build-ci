@@ -1,6 +1,6 @@
 app-id: "org.mozilla.Firefox.Nightly"
 runtime: "org.freedesktop.Platform"
-runtime-version: "23.08"
+runtime-version: "24.08"
 sdk: "org.freedesktop.Sdk"
 separate-locales: false
 build-options:
@@ -9,12 +9,15 @@ build-options:
 add-extensions:
   org.freedesktop.Platform.ffmpeg-full:
     directory: "lib/ffmpeg"
-    version: "23.08"
+    version: "24.08"
+    no-autodownload: true
     add-ld-path: "."
 command: "firefox-nightly"
 finish-args:
   - "--share=ipc"
   - "--share=network"
+  - "--socket=pcsc"
+  - "--socket=cups"
   - "--socket=wayland"
   - "--socket=fallback-x11"
   - "--socket=pulseaudio"
@@ -23,16 +26,19 @@ finish-args:
   - "--persist=Downloads"
   - "--filesystem=/run/.heim_org.h5l.kcm-socket"
   - "--filesystem=xdg-config/gtk-3.0/:ro"
-  - "--talk-name=org.freedesktop.FileManager1"
+  - "--filesystem=xdg-run/speech-dispatcher:ro"
   - "--system-talk-name=org.freedesktop.NetworkManager"
+  - "--talk-name=org.freedesktop.FileManager1"
   - "--talk-name=org.a11y.Bus"
   - "--talk-name=org.gnome.SessionManager"
   - "--talk-name=org.freedesktop.ScreenSaver"
   - "--talk-name=org.gtk.vfs.*"
   - "--talk-name=org.freedesktop.Notifications"
   - "--talk-name=org.gnome.Mutter.IdleMonitor.*"
+  - "--env=DICPATH=/usr/share/hunspell"
   - "--env=GTK_PATH=/app/lib/gtkmodules"
   - "--env=MOZ_ENABLE_WAYLAND=1"
+  - "--env=MOZ_APP_REMOTINGNAME=firefox-nightly"
   - "--own-name=org.mozilla.firefox_nightly.*"
   - "--own-name=org.mpris.MediaPlayer2.firefox.*"
 
@@ -56,8 +62,8 @@ modules:
         dest: "BaseApp"
       - type: "archive"
         sha256: "Xbinary_sha256X"
-        path: "firefox-XversionX.en-US.linux-x86_64.tar.bz2"
-        archive-type: "tar-bzip2"
+        path: "firefox-XversionX.en-US.linux-x86_64.tar.xz"
+        archive-type: "tar-xz"
         strip-components: 0
         only-arches:
           - "x86_64"
