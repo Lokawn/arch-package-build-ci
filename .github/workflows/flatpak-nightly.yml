@@ -133,6 +133,10 @@ jobs:
           echo -e "${PRIVATE_KEY}" | gpg --batch --import &> $DEBUG_OFF
           echo "${PASSPHRASE}" | gpg --detach-sign --pinentry-mode loopback \
             --passphrase --passphrase-fd 0 --sign \
+              "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" && echo "Signed ${APP}-${version}.x86_64.flatpak"
+
+          # echo "${PASSPHRASE}" | gpg --detach-sign --pinentry-mode loopback \
+            --passphrase --passphrase-fd 0 --sign \
               "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" &> /dev/null && echo "Signed ${APP}-${version}.x86_64.flatpak"
 
           mkdir -vp "${GITHUB_WORKSPACE}/${APP}-${version}" &> $DEBUG_OFF
