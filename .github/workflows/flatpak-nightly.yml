@@ -56,9 +56,9 @@ jobs:
             https://dl.flathub.org/repo/flathub.flatpakrepo &> $DEBUG_OFF
 
           flatpak install --noninteractive --assumeyes --user flathub \
-            org.freedesktop.Platform/x86_64/23.08 \
-            org.freedesktop.Sdk/x86_64/23.08 \
-            org.mozilla.firefox.BaseApp/x86_64/23.08 &> $DEBUG_OFF
+            org.freedesktop.Platform/x86_64/24.08 \
+            org.freedesktop.Sdk/x86_64/24.08 \
+            org.mozilla.firefox.BaseApp/x86_64/24.08 &> $DEBUG_OFF
 
           cd "${GITHUB_WORKSPACE}/flatpak/${APP}"
 
@@ -82,9 +82,9 @@ jobs:
           version="${firefox_pipeline}.${pipeline_id}"
           echo "version=$version" >> $GITHUB_ENV
 
-          download_url="${ftp_server}firefox-${firefox_pipeline}.en-US.linux-x86_64.tar.bz2"
+          download_url="${ftp_server}firefox-${firefox_pipeline}.en-US.linux-x86_64.tar.xz"
 
-          filename="firefox-${firefox_pipeline}.en-US.linux-x86_64.tar.bz2"
+          filename="firefox-${firefox_pipeline}.en-US.linux-x86_64.tar.xz"
 
           cd "${GITHUB_WORKSPACE}/flatpak/${APP}"
 
