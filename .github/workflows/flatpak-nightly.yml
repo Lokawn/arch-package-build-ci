@@ -131,12 +131,8 @@ jobs:
           cd "${GITHUB_WORKSPACE}/flatpak/${APP}"
 
           echo -e "${PRIVATE_KEY}" | gpg --batch --import &> $DEBUG_OFF
-          gpg --list-secret-keys
-          echo "${PASSPHRASE}" | gpg --detach-sign --pinentry-mode loopback \
-            --passphrase --passphrase-fd 0 --sign \
-              "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" && echo "Signed ${APP}-${version}.x86_64.flatpak"
 
-          # echo "${PASSPHRASE}" | gpg --detach-sign --pinentry-mode loopback \
+          echo "${PASSPHRASE}" | gpg --detach-sign --pinentry-mode loopback \
             --passphrase --passphrase-fd 0 --sign \
               "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" &> /dev/null && echo "Signed ${APP}-${version}.x86_64.flatpak"
 
