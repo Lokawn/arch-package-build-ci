@@ -226,8 +226,8 @@ jobs:
           fi || (exit 1)
 
       - uses: actions/upload-artifact@v4
-        if: ${{ failure() && steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false' && steps.rsync.outcome == 'failure' }}
-        name: Upload ${{ env.APP_NAME }} APKs as artifact as rsync failed.
+        if: ${{steps.main_step.outcome == 'success' && env[format('{0}_UPSTREAM_BUILD', env.APP_NAME)] == 'false'}}
+        name: Upload ${{ env.APP_NAME }} APKs as artifact.
         with:
           name: ${{ env.APP_NAME }} APKs
           path: |
