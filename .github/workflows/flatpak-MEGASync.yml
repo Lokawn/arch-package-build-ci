@@ -68,7 +68,7 @@ jobs:
           echo "version=$version" >> $GITHUB_ENV
 
           flatpak-builder --repo=nightly build \
-            "${APP}".yaml --force-clean --user --install &> $DEBUG_OFF
+            "${APP}".yml --force-clean --user --install &> $DEBUG_OFF
 
           flatpak build-bundle nightly --arch=x86_64 \
             --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
