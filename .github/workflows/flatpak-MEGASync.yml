@@ -152,9 +152,9 @@ jobs:
       #       exit 1
       #     fi || (exit 1)
 
-      - uses: actions/upload-artifact@v4
-        name: Upload MEGASync flatpak bundle as artifact.
+      - name: Upload MEGASync flatpak bundle as artifact.
+        uses: actions/upload-artifact@v4
         with:
-          name: MEGASync flatpak bundle
+          name: MEGASync-flatpak-bundle
           path: |
             ${GITHUB_WORKSPACE}/${APP}-${version}-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.x86_64.flatpak.gpg
