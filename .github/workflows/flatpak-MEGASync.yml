@@ -44,7 +44,8 @@ jobs:
           echo "/usr/bin:/usr/sbin:/bin:/sbin" >> $GITHUB_PATH
 
           sudo apt update &> $DEBUG_OFF
-          sudo apt install --assume-yes flatpak flatpak-builder &> $DEBUG_OFF
+          sudo apt install --assume-yes flatpak flatpak-builder svn \
+            git wget curl zip unzip tar &> $DEBUG_OFF
 
           echo "keyserver hkps://keys.openpgp.org" > \
             tee "~/.gnupg/gpg.conf" &> $DEBUG_OFF
