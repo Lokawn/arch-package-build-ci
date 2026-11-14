@@ -184,9 +184,10 @@ modules:
             # to compile gzlib.o, gzwrite.o, and gzread.o
             - |
               set -e
-              sed -i '1s/^/#include <unistd.h>\n/' Source/ZLib/gzlib.c Source/ZLib/gzwrite.c Source/ZLib/gzread.c
+              sed -i '1s/^/#include <unistd.h>\n/' FreeImage/trunk/Source/ZLib/{gzlib.c,gzwrite.c,gzread.c}
+              [ $? != 0 ] && ls -laR
 
-      - name: libsodium
+       - name: libsodium
         sources:
           - type: git
             url: https://github.com/jedisct1/libsodium.git
