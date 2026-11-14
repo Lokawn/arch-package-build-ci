@@ -5,7 +5,8 @@ on:
 
 env:
   APP: 'nz.mega.MEGAsync'
-  DEBUG_OFF: '/dev/null'
+  DEBUG_OFF: '/dev/stdout'
+  #DEBUG_OFF: '/dev/null'
   # setup colors
   RED_COLOR: '\e[1;31m'
   ORANGE_COLOR: '\e[1;33m'
