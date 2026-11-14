@@ -74,6 +74,10 @@ modules:
           - |
             set -e
             sed -i '/get_clang_format()/d' CMakeLists.txt
+          # Remove obsolete stdc++fs link target (integrated into libstdc++ since GCC 9)
+          - |
+            set -e
+            sed -i '/stdc++fs/d' src/MEGASync/mega/cmake/modules/sdklib_target.cmake
           # Apply the C++ dialog fix before CMake configures and builds
           - |
             set -e
@@ -156,7 +160,7 @@ modules:
         subdir: FreeImage/trunk
         no-autogen: true
         build-options:
-          cflags: "-Wno-error=implicit-function-declaration"
+          #cflags: "-Wno-error=implicit-function-declaration"
           arch:
             aarch64:
               cflags: -fPIC
@@ -173,6 +177,14 @@ modules:
             revision: r1911
           - type: patch
             path: patches/freeimage-makefile-install.patch
+          - type: shell
+            commands:
+            # Insert '#include <unistd.h>' missing header to the very first line
+            # required for standard POSIX system functions like read, write, close, and lseek
+            # to compile gzlib.o, gzwrite.o, and gzread.o
+            - |
+              set -e
+              sed -i '1s/^/#include <unistd.h>\n/' Source/ZLib/gzlib.c Source/ZLib/gzwrite.c Source/ZLib/gzread.c
 
       - name: libsodium
         sources:
