@@ -41,6 +41,7 @@ modules:
     - -Wno-author
     - -Wno-dev
     build-options:
+      cxxflags: "-DNDEBUG"
       env:
         DESKTOP_DESTDIR: /app
     post-install:
