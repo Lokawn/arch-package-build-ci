@@ -74,9 +74,7 @@ jobs:
 
           flatpak build-bundle nightly --arch=x86_64 \
             --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
-            "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" "${APP}" &> $DEBUG_OFF
-
-          ls -la "${GITHUB_WORKSPACE}"
+            "${GITHUB_WORKSPACE}/${APP}-${version}-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.x86_64.flatpak" "${APP}" &> $DEBUG_OFF
 
       - name: "Sign flatpak bundle."
         env:
