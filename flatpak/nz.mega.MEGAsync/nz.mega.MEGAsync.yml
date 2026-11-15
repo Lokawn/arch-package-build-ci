@@ -45,8 +45,11 @@ modules:
       env:
         DESKTOP_DESTDIR: /app
     post-install:
+      # Move files from /app/usr into /app so Flatpak can find the binary, icons, and desktop file
+      - cp -r /app/usr/* /app/
+      - rm -rf /app/usr
       # Manually install the metainfo file (replaces the old platform.pri patch)
-      - install -Dm644 ../MEGASync/platform/linux/data/nz.mega.MEGAsync
+      - install -Dm644 ../src/MEGASync/platform/linux/data/${FLATPAK_ID}.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
       # Automatically add build version and date into AppData
       - |
         set -e
