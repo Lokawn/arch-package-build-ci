@@ -182,10 +182,10 @@ modules:
             # Insert '#include <unistd.h>' missing header to the very first line
             # required for standard POSIX system functions like read, write, close, and lseek
             # to compile gzlib.o, gzwrite.o, and gzread.o
+            - ls -laR
             - |
               set -e
               sed -i '1s/^/#include <unistd.h>\n/' FreeImage/trunk/Source/ZLib/{gzlib.c,gzwrite.c,gzread.c}
-              [ $? != 0 ] && ls -laR
 
       - name: libsodium
         sources:
