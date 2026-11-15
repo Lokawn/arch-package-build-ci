@@ -76,6 +76,8 @@ jobs:
             --runtime-repo=https://dl.flathub.org/repo/flathub.flatpakrepo \
             "${GITHUB_WORKSPACE}/${APP}-${version}.x86_64.flatpak" "${APP}" &> $DEBUG_OFF
 
+          ls -la "${GITHUB_WORKSPACE}"
+
       - name: "Sign flatpak bundle."
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
