@@ -159,4 +159,4 @@ jobs:
         with:
           name: MEGASync flatpak bundle
           path: |
-            ${GITHUB_WORKSPACE}/${APP}-${version}-${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}.x86_64.flatpak.gpg
+            ${{ github.workspace }}/${{ env.APP }}-${{ env.version }}-${{ github.run_number }}.${{ github.run_attempt }}.x86_64.flatpak.gpg
