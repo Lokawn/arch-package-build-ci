@@ -35,8 +35,10 @@ modules:
     - -DENABLE_DESIGN_TOKENS_IMPORTER:BOOL='OFF'
     - -DENABLE_DESKTOP_APP_TESTS:BOOL='OFF'
     - -DUSE_BREAKPAD:BOOL='OFF'
+    # FFMPEG creates video thumbs, but can't be used without freeimage
     - -DUSE_FFMPEG:BOOL='OFF'
     - -DUSE_FREEIMAGE:BOOL='OFF'
+    # PDFium creates PDFs thumbs, but can't be used without freeimage
     - -DUSE_PDFIUM:BOOL='OFF'
     - -Wno-author
     - -Wno-dev
