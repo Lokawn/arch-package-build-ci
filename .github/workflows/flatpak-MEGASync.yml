@@ -1,4 +1,4 @@
-name: "Package MEGASync flatpak bundle."
+name: "Package MEGASync flatpak bundle"
 
 on:
   workflow_dispatch:
