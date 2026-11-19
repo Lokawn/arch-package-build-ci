@@ -37,6 +37,7 @@ modules:
     - -DUSE_BREAKPAD:BOOL='OFF'
     - -DUSE_FFMPEG:BOOL='OFF'
     - -DUSE_FREEIMAGE:BOOL='OFF'
+    - -DUSE_LIBUV:BOOL='OFF'
     - -DUSE_PDFIUM:BOOL='OFF'
     - -Wno-author
     - -Wno-dev
@@ -159,6 +160,7 @@ modules:
         cleanup:
           - /bin
 
+      # Diabling freeimage as thumbnails can be created using MEGAWeb
 #      - name: freeimage
 #        subdir: FreeImage/trunk
 #        no-autogen: true
@@ -229,22 +231,24 @@ modules:
                 url: https://old.mediaarea.net/download/source/libzen/0.4.41/libzen_0.4.41.tar.xz
                 sha256: 933bad3b7ecd29dc6bdc88a83645c83dfd098c15b0b90d6177a37fa1536704e8
 
-      - name: libuv
-        sources:
-          - type: archive
-            url: https://dist.libuv.org/dist/v1.53.0/libuv-v1.53.0.tar.gz
-            sha256: cb0d6dd2128d5a95bd242c6cc982a24fe608fa93da57b6b4ec763b0018c53e64
+      # Don't need Local HTTP server for streaming media to external players
+      # - name: libuv
+      #   sources:
+      #     - type: archive
+      #       url: https://dist.libuv.org/dist/v1.53.0/libuv-v1.53.0.tar.gz
+      #       sha256: cb0d6dd2128d5a95bd242c6cc982a24fe608fa93da57b6b4ec763b0018c53e64
 
-      - name: LibRaw
-        config-opts:
-          - --disable-examples
-          - --disable-static
-        sources:
-          - type: archive
-            url: https://www.libraw.org/data/LibRaw-0.22.3.tar.gz
-            sha256: 789f3c33466210a1a0907f747a97c715d21bbf4af712f257fcbbd90111b227e4
-        cleanup:
-          - /bin
+      # Not needed since freeimage is disabled
+      # - name: LibRaw
+      #   config-opts:
+      #     - --disable-examples
+      #     - --disable-static
+      #   sources:
+      #     - type: archive
+      #       url: https://www.libraw.org/data/LibRaw-0.22.3.tar.gz
+      #       sha256: 789f3c33466210a1a0907f747a97c715d21bbf4af712f257fcbbd90111b227e4
+      #   cleanup:
+      #     - /bin
 
   - name: xrdb
     sources:
